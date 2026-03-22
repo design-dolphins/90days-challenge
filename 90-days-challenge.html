@@ -170,7 +170,7 @@ h1{font-family:"Bebas Neue",sans-serif;font-size:48px;letter-spacing:4px;color:v
 .share-actions{display:flex;gap:8px;width:100%;max-width:480px}
 .share-pdf-btn{flex:1;padding:14px;background:#c8a96e;border:none;color:#000;font-family:"Bebas Neue",sans-serif;font-size:18px;letter-spacing:2px;border-radius:6px;cursor:pointer}
 .share-close-btn{padding:14px 20px;background:transparent;border:1px solid #333;color:#555;font-family:"Space Mono",monospace;font-size:11px;border-radius:6px;cursor:pointer}
-.past-challenge-card{background:transparent;border:1px solid var(--accent);border-radius:6px;padding:14px;margin-bottom:10px;cursor:pointer;transition:opacity .2s}
+.past-challenge-card{background:transparent;border:2px solid var(--accent);border-radius:6px;padding:14px;margin-bottom:10px;cursor:pointer;transition:opacity .2s}
 .empty-state{font-family:"Space Mono",monospace;font-size:10px;color:var(--muted);text-align:center;padding:20px}
 @media print{
   body > *:not(.share-overlay){display:none!important}
@@ -185,7 +185,7 @@ h1{font-family:"Bebas Neue",sans-serif;font-size:48px;letter-spacing:4px;color:v
 .past-detail-back{background:none;border:none;color:var(--accent);font-family:"Space Mono",monospace;font-size:11px;cursor:pointer;padding:0;letter-spacing:1px}
 .past-detail-title{font-family:"Bebas Neue",sans-serif;font-size:24px;color:var(--accent);letter-spacing:3px}
 .past-detail-body{padding:0 20px 40px}
-.past-challenge-card{background:transparent;border:1px solid var(--accent);border-radius:6px;padding:14px;margin-bottom:10px;cursor:pointer;transition:opacity .2s}
+.past-challenge-card{background:transparent;border:2px solid var(--accent);border-radius:6px;padding:14px;margin-bottom:10px;cursor:pointer;transition:opacity .2s}
 .past-challenge-card:hover{border-color:var(--accent)}
 </style>
 </head>
@@ -939,6 +939,14 @@ function resetHabits(){
 function openPastDetail(c, num){
   var s = gs();
   var habits = getHabits(s);
+  // Setup swipe to close
+  var overlay = document.getElementById("pastDetailOverlay");
+  var startX = 0;
+  overlay.ontouchstart = function(e){startX = e.touches[0].clientX};
+  overlay.ontouchend = function(e){
+    var dx = e.changedTouches[0].clientX - startX;
+    if(dx > 60) closePastDetail();
+  };
   var maxDay = (c.done||[]).length > 0 ? Math.max.apply(null, c.done) : 0;
   document.getElementById("pastDetailTitle").textContent = "CHALLENGE #"+num;
   var body = document.getElementById("pastDetailBody");
