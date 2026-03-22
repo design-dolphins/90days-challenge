@@ -254,9 +254,17 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 .share-close-btn{padding:14px 20px;background:transparent;border:1px solid #333;color:#555;font-family:'Space Mono',monospace;font-size:11px;border-radius:6px;cursor:pointer}
 @media print{
   body > *:not(.share-overlay){display:none!important}
-  .share-overlay{position:static;background:#fff;padding:0}
+  .share-overlay{position:static;background:#f0ebe3;padding:0;display:block!important}
   .share-actions{display:none!important}
-  .share-card{border:1px solid #c8a96e;page-break-inside:avoid}
+  .share-card{
+    border:1px solid #c8a96e;
+    page-break-inside:avoid;
+    background:#f0ebe3!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+  .share-task-bar-bg{background:#d4c9b8!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  .share-task-bar-fill{background:#b8935a!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 }
 </style>
 </head>
