@@ -610,9 +610,11 @@ function toggleHistCheck(n,id){
 
 function toggleHistEdit(n){
   const area=document.getElementById(`hist-edit-${n}`);
+  const viewTasks=document.getElementById(`hist-view-tasks-${n}`);
   const btn=document.getElementById(`edit-btn-${n}`);
   const isOpen=area.style.display!=='none';
   area.style.display=isOpen?'none':'block';
+  if(viewTasks) viewTasks.style.display=isOpen?'':'none';
   btn.classList.toggle('open',!isOpen);
   btn.textContent=isOpen?'EDIT':'閉じる';
 }
@@ -632,6 +634,8 @@ function saveHistReflectAndClose(n,dateKey){
   }
   // close edit
   document.getElementById(`hist-edit-${n}`).style.display='none';
+  const viewTasks=document.getElementById(`hist-view-tasks-${n}`);
+  if(viewTasks) viewTasks.style.display='';
   const btn=document.getElementById(`edit-btn-${n}`);
   btn.classList.remove('open');
   btn.textContent='EDIT';
