@@ -335,7 +335,7 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
     <!-- Reflection -->
     <div class="reflect-block">
       <div class="reflect-block-title">— 今日の振り返り</div>
-      <textarea class="reflect-area" id="reflectInput" placeholder="今日気づいたこと、感じたこと、明日試したいこと…" rows="4"></textarea>
+      <textarea class="reflect-area" id="reflectInput" placeholder="今日気づいたこと、感じたこと、明日試したいこと…" rows="4" oninput="autoSaveReflection()"></textarea>
     </div>
     <button class="cta" id="ctaBtn" onclick="completeDay()">今日を完了にする</button>
 
@@ -441,11 +441,21 @@ const QUOTES=[
 const KEY='90days-v1';
 function gs(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return{}}}
 function ss(s){localStorage.setItem(KEY,JSON.stringify(s))}
-function today(){return new Date().toISOString().slice(0,10)}
+function today(){
+  // 3am reset: subtract 3 hours so "today" changes at 3am
+  const d=new Date(Date.now()-3*60*60*1000);
+  return d.toISOString().slice(0,10);
+}
 function fmt(d){if(!d)return'—';const dt=new Date(d+'T00:00:00');return`${dt.getFullYear()}/${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')}`}
 function dateOfDay(start,n){const d=new Date(start+'T00:00:00');d.setDate(d.getDate()+n-1);return d.toISOString().slice(0,10)}
 function getCur(s){if(!s.challenges||!s.challenges.length)return null;return s.challenges[s.challenges.length-1]}
-function currentDay(s){const c=getCur(s);if(!c||!c.startDate)return 1;return Math.min(Math.floor((Date.now()-new Date(c.startDate+'T00:00:00'))/86400000)+1,90)}
+function currentDay(s){
+  const c=getCur(s);if(!c||!c.startDate)return 1;
+  // Adjust for 3am reset: subtract 3 hours so day changes at 3am
+  const now=new Date(Date.now()-3*60*60*1000);
+  const start=new Date(new Date(c.startDate+'T00:00:00')-3*60*60*1000);
+  return Math.min(Math.floor((now-start)/86400000)+1,90);
+}
 function phase(d){if(d<=30)return{n:1,label:'PHASE 1 — 基盤を作る'};if(d<=60)return{n:2,label:'PHASE 2 — 深める'};return{n:3,label:'PHASE 3 — 完成させる'}}
 function getHabits(s){return s.customHabits||DEFAULT_HABITS}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5)}
@@ -597,6 +607,15 @@ function resetCurrent(){
 }
 
 // Reflection (today)
+function autoSaveReflection(){
+  const text=document.getElementById('reflectInput').value;
+  let s=gs();const cur=getCur(s);if(!cur)return;
+  if(!cur.reflections)cur.reflections={};
+  if(text.trim()) cur.reflections[today()]=text;
+  else delete cur.reflections[today()];
+  ss(s);
+}
+
 function saveReflection(){
   const text=document.getElementById('reflectInput').value.trim();if(!text)return;
   let s=gs();const cur=getCur(s);if(!cur)return;
