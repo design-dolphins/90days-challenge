@@ -77,7 +77,7 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 .cta{width:100%;padding:15px;background:transparent;border:2px solid var(--accent);color:var(--accent);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;border-radius:6px;cursor:pointer;transition:all .2s;margin-bottom:16px;display:block}
 .cta:hover{background:var(--accent);color:#000}
 .cta:active{transform:scale(.98)}
-.cta.day-done{background:var(--done);border-color:var(--done-border);color:var(--done-border);cursor:default}
+.cta.day-done{background:var(--done);border-color:var(--done-border);color:var(--done-border);cursor:pointer}
 .danger-btn{background:none;border:none;color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;text-decoration:underline;display:block;margin-left:auto;margin-bottom:20px}
 
 /* Reflection (inline in TODAY) */
@@ -125,7 +125,7 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 
 /* Reflection in history */
 .hist-reflect-label{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:6px}
-.hist-reflect-area{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:12px;padding:10px;resize:none;min-height:70px;line-height:1.6}
+.hist-reflect-area{width:100%;background:#e8e1d6;border:1px solid var(--border);border-radius:4px;color:#1a1a1a;font-family:'Noto Sans JP',sans-serif;font-size:12px;padding:10px;resize:none;min-height:70px;line-height:1.6}
 .hist-reflect-area:focus{outline:none;border-color:var(--accent)}
 .hist-reflect-footer{display:flex;align-items:center;margin-top:6px;gap:8px}
 .hist-reflect-save{padding:6px 12px;background:transparent;border:1px solid var(--accent);color:var(--accent);font-family:'Space Mono',monospace;font-size:9px;border-radius:4px;cursor:pointer}
@@ -188,7 +188,7 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 .hist-task-name{font-size:12px;cursor:pointer}
 .hist-task-item.checked .hist-task-name{text-decoration:line-through;color:var(--muted)}
 .hist-reflect-label{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:5px}
-.hist-reflect-area{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:12px;padding:9px;resize:none;min-height:60px;line-height:1.6}
+.hist-reflect-area{width:100%;background:#e8e1d6;border:1px solid var(--border);border-radius:4px;color:#1a1a1a;font-family:'Noto Sans JP',sans-serif;font-size:12px;padding:9px;resize:none;min-height:60px;line-height:1.6}
 .hist-reflect-area:focus{outline:none;border-color:var(--accent)}
 .hist-reflect-footer{display:flex;align-items:center;gap:8px;margin-top:5px}
 .hist-reflect-save{padding:5px 12px;background:transparent;border:1px solid var(--accent);color:var(--accent);font-family:'Space Mono',monospace;font-size:9px;border-radius:4px;cursor:pointer}
@@ -277,17 +277,13 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
     <div class="sec-label">— 今日のタスク</div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="phase-badge" style="margin-bottom:0" id="phaseBadge"></div><button class="edit-open-btn" onclick="openEdit()">EDIT TASKS</button></div>
     <div id="habitList"></div>
-    <button class="cta" id="ctaBtn" onclick="completeDay()">今日を完了にする</button>
 
     <!-- Reflection -->
     <div class="reflect-block">
       <div class="reflect-block-title">— 今日の振り返り</div>
       <textarea class="reflect-area" id="reflectInput" placeholder="今日気づいたこと、感じたこと、明日試したいこと…" rows="4"></textarea>
-      <div class="reflect-footer">
-        <button class="reflect-save-btn" onclick="saveReflection()">保存する</button>
-        <span class="reflect-saved" id="reflectSaved"></span>
-      </div>
     </div>
+    <button class="cta" id="ctaBtn" onclick="completeDay()">今日を完了にする</button>
 
 
     <div class="sec-label">— フェーズガイド</div>
@@ -415,8 +411,22 @@ function toggleHabit(id){
 }
 function completeDay(){
   let s=gs();const cur=getCur(s);if(!cur)return;
-  const cd=currentDay(s);if((cur.done||[]).includes(cd))return;
-  if(!cur.done)cur.done=[];cur.done.push(cd);ss(s);render();
+  const cd=currentDay(s);
+  if(!cur.done)cur.done=[];
+  const idx=cur.done.indexOf(cd);
+  if(idx===-1){
+    // Complete: auto-save reflection too
+    const text=document.getElementById('reflectInput').value.trim();
+    if(text){
+      if(!cur.reflections)cur.reflections={};
+      cur.reflections[today()]=text;
+    }
+    cur.done.push(cd);
+  } else {
+    // Undo
+    cur.done.splice(idx,1);
+  }
+  ss(s);render();
   if(document.getElementById('view-history').classList.contains('active')) renderHistory();
 }
 function resetCurrent(){
