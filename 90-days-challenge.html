@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;700&family=Space+Mono&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0a0a0a;--surface:#111;--border:#222;--accent:#c8a96e;--accent2:#4a9eff;--accent3:#b478c8;--text:#e8e8e8;--muted:#555;--done:#1a2e1a;--done-border:#3d7a3d}
+:root{--bg:#f0ebe3;--surface:#111;--border:#222;--accent:#c8a96e;--accent2:#4a9eff;--accent3:#b478c8;--text:#e8e8e8;--muted:#555;--done:#1a2e1a;--done-border:#3d7a3d}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;min-height:100vh;max-width:600px;margin:0 auto}
@@ -64,7 +64,7 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 .habit.done .chk{background:var(--accent);border-color:var(--accent);color:#000}
 .hinfo{flex:1;cursor:pointer;user-select:none}
 .hname{font-size:13px;font-weight:700;margin-bottom:2px}
-.habit.done .hname{text-decoration:line-through;color:var(--muted)}
+.habit.done .hname{font-size:13px;font-weight:700;margin-bottom:2px}
 .hdesc{font-size:11px;color:var(--muted);line-height:1.4}
 .htag{font-family:'Space Mono',monospace;font-size:9px;padding:2px 6px;border-radius:2px;flex-shrink:0}
 .tag-mind{background:rgba(200,169,110,.15);color:var(--accent)}
@@ -134,7 +134,7 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 
 /* Edit section in history */
 .edit-section-title{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;margin:16px 0 10px;padding-top:14px;border-top:1px solid var(--border)}
-.edit-habit-card{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:8px}
+.edit-habit-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:8px}
 .edit-habit-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .edit-habit-num{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);flex:1}
 .delete-btn{background:none;border:none;color:#803030;font-size:11px;cursor:pointer;padding:2px 6px;font-family:'Space Mono',monospace}
