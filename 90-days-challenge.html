@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="90 DAYS">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;700&family=Space+Mono&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{--bg:#f0ebe3;--surface:#111;--border:#222;--accent:#c8a96e;--accent2:#4a9eff;--accent3:#b478c8;--text:#e8e8e8;--muted:#555;--done:#1a2e1a;--done-border:#3d7a3d}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -781,6 +782,31 @@ function renderSummary(){
 }
 
 
+
+function saveAsImage(){
+  const btn = document.getElementById('saveImgBtn');
+  btn.textContent = '生成中...';
+  btn.disabled = true;
+  const card = document.getElementById('shareCard');
+  html2canvas(card, {
+    backgroundColor: '#f0ebe3',
+    scale: 2,
+    useCORS: true,
+    logging: false
+  }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = '90days-result.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    btn.textContent = '画像として保存';
+    btn.disabled = false;
+  }).catch(err => {
+    console.error(err);
+    btn.textContent = '画像として保存';
+    btn.disabled = false;
+  });
+}
+
 function showShareCard(){
   let s=gs();const cur=getCur(s);if(!cur)return;
   const habits=getHabits(s);
@@ -838,7 +864,7 @@ if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.ser
 <div class="share-overlay" id="shareOverlay" style="display:none">
   <div class="share-card" id="shareCard"></div>
   <div class="share-actions">
-    <button class="share-pdf-btn" onclick="window.print()">PDFで保存</button>
+    <button class="share-pdf-btn" onclick="saveAsImage()" id="saveImgBtn">画像として保存</button>
     <button class="share-close-btn" onclick="document.getElementById('shareOverlay').style.display='none'">閉じる</button>
   </div>
 </div>
