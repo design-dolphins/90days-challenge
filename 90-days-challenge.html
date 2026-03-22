@@ -170,7 +170,7 @@ h1{font-family:"Bebas Neue",sans-serif;font-size:48px;letter-spacing:4px;color:v
 .share-actions{display:flex;gap:8px;width:100%;max-width:480px}
 .share-pdf-btn{flex:1;padding:14px;background:#c8a96e;border:none;color:#000;font-family:"Bebas Neue",sans-serif;font-size:18px;letter-spacing:2px;border-radius:6px;cursor:pointer}
 .share-close-btn{padding:14px 20px;background:transparent;border:1px solid #333;color:#555;font-family:"Space Mono",monospace;font-size:11px;border-radius:6px;cursor:pointer}
-.past-challenge-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:10px}
+.past-challenge-card{background:transparent;border:1px solid var(--accent);border-radius:6px;padding:14px;margin-bottom:10px;cursor:pointer;transition:opacity .2s}
 .empty-state{font-family:"Space Mono",monospace;font-size:10px;color:var(--muted);text-align:center;padding:20px}
 @media print{
   body > *:not(.share-overlay){display:none!important}
@@ -178,6 +178,15 @@ h1{font-family:"Bebas Neue",sans-serif;font-size:48px;letter-spacing:4px;color:v
   .share-actions{display:none!important}
   .share-card{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 }
+
+.past-detail-overlay{position:fixed;inset:0;background:var(--bg);z-index:3000;overflow-y:auto;transform:translateX(100%);transition:transform .3s ease}
+.past-detail-overlay.open{transform:translateX(0)}
+.past-detail-header{display:flex;align-items:center;gap:12px;padding:20px 20px 0;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:16px;position:sticky;top:0;background:var(--bg);z-index:1}
+.past-detail-back{background:none;border:none;color:var(--accent);font-family:"Space Mono",monospace;font-size:11px;cursor:pointer;padding:0;letter-spacing:1px}
+.past-detail-title{font-family:"Bebas Neue",sans-serif;font-size:24px;color:var(--accent);letter-spacing:3px}
+.past-detail-body{padding:0 20px 40px}
+.past-challenge-card{background:transparent;border:1px solid var(--accent);border-radius:6px;padding:14px;margin-bottom:10px;cursor:pointer;transition:opacity .2s}
+.past-challenge-card:hover{border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -573,7 +582,9 @@ function renderHistory(){
   title.textContent = "— 過去の記録";
   container.appendChild(title);
 
-  for(var n=cd; n>=1; n--){
+  var showAllDays = document.getElementById("historyDayList")._showAll || false;
+  var displayLimit = showAllDays ? cd : Math.min(cd, 7);
+  for(var n=cd; n>=Math.max(1, cd-displayLimit+1); n--){
     var ph = phase(n);
     var dateKey = (n===cd)?today():dateOfDay(cur.startDate,n);
     var checks = (cur.checks||{})[dateKey]||[];
@@ -688,6 +699,18 @@ function renderHistory(){
     container.appendChild(card);
   }
 
+  // もっと見るボタン
+  if(cd > 7 && !showAllDays){
+    var moreBtn = document.createElement("button");
+    moreBtn.style.cssText = "width:100%;padding:10px;background:transparent;border:1px dashed var(--border);color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;border-radius:6px;cursor:pointer;margin-bottom:10px;letter-spacing:1px";
+    moreBtn.textContent = "もっと見る（残り"+(cd-7)+"日分）";
+    moreBtn.onclick = function(){
+      document.getElementById("historyDayList")._showAll = true;
+      renderHistory();
+    };
+    container.appendChild(moreBtn);
+  }
+
   // Past challenges
   if(s.challenges && s.challenges.length > 1){
     var pastTitle = document.createElement("div");
@@ -723,6 +746,7 @@ function renderHistory(){
       barFill.style.cssText = "height:100%;width:"+pct+"%;background:var(--accent);border-radius:2px";
       barBg.appendChild(barFill);
       card.appendChild(hd); card.appendChild(dt2); card.appendChild(barBg);
+      (function(cc, nn){card.onclick=function(){openPastDetail(cc, nn)}})(c, num);
       container.appendChild(card);
     });
   }
@@ -911,6 +935,69 @@ function resetHabits(){
 }
 
 // SETTINGS
+
+function openPastDetail(c, num){
+  var s = gs();
+  var habits = getHabits(s);
+  var maxDay = (c.done||[]).length > 0 ? Math.max.apply(null, c.done) : 0;
+  document.getElementById("pastDetailTitle").textContent = "CHALLENGE #"+num;
+  var body = document.getElementById("pastDetailBody");
+  body.innerHTML = "";
+  if(maxDay === 0){
+    var empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "記録がありません";
+    body.appendChild(empty);
+  } else {
+    for(var n=maxDay; n>=1; n--){
+      var ph = phase(n);
+      var dateKey = dateOfDay(c.startDate, n);
+      var checks = (c.checks||{})[dateKey]||[];
+      var isDone = (c.done||[]).indexOf(n) !== -1;
+      var reflect = (c.reflections||{})[dateKey]||"";
+      var visible = habits.filter(function(h){return h.phase<=ph.n});
+      var dc = document.createElement("div");
+      dc.className = "hist-day-card";
+      var dh = document.createElement("div");
+      dh.className = "hist-day-header";
+      var left = document.createElement("div");
+      var dn = document.createElement("div"); dn.className="hist-day-num"; dn.textContent="DAY "+n;
+      var dd = document.createElement("div"); dd.className="hist-day-date"; dd.textContent=fmt(dateKey);
+      left.appendChild(dn); left.appendChild(dd);
+      var badge = document.createElement("span");
+      badge.className = "hist-done-badge";
+      badge.style.marginLeft = "auto";
+      if(isDone){badge.textContent="✓ 完了"}
+      else{badge.textContent="未完了";badge.style.cssText="margin-left:auto;border-color:var(--border);color:var(--muted);font-family:'Space Mono',monospace;font-size:9px;padding:2px 8px;border-radius:2px"}
+      dh.appendChild(left); dh.appendChild(badge);
+      var tasks = document.createElement("div");
+      tasks.className = "hist-tasks";
+      visible.forEach(function(h){
+        var c2 = checks.indexOf(h.id)!==-1;
+        var item = document.createElement("div");
+        item.className = "hist-task-item"+(c2?" checked":"");
+        var ck = document.createElement("div"); ck.className="hist-task-chk"; ck.style.cursor="default"; ck.textContent=c2?"✓":"";
+        var nm = document.createElement("div"); nm.className="hist-task-name"; nm.textContent=h.name;
+        item.appendChild(ck); item.appendChild(nm);
+        tasks.appendChild(item);
+      });
+      dc.appendChild(dh); dc.appendChild(tasks);
+      if(reflect){
+        var rl = document.createElement("div"); rl.className="hist-reflect-label"; rl.textContent="— 振り返り";
+        var rt = document.createElement("div"); rt.className="hist-reflect-text"; rt.textContent=reflect;
+        dc.appendChild(rl); dc.appendChild(rt);
+      }
+      body.appendChild(dc);
+    }
+  }
+  var overlay = document.getElementById("pastDetailOverlay");
+  overlay.classList.add("open");
+}
+
+function closePastDetail(){
+  document.getElementById("pastDetailOverlay").classList.remove("open");
+}
+
 function openSettings(){document.getElementById("settingsOverlay").style.display="flex"}
 function exportData(){
   var data=localStorage.getItem(KEY)||"{}";
@@ -998,5 +1085,13 @@ function saveAsImage(){
 
 if("serviceWorker" in navigator) window.addEventListener("load",function(){navigator.serviceWorker.register("./90-days-sw.js")});
 </script>
+
+<div class="past-detail-overlay" id="pastDetailOverlay">
+  <div class="past-detail-header">
+    <button class="past-detail-back" onclick="closePastDetail()">&#8592; 戻る</button>
+    <div class="past-detail-title" id="pastDetailTitle"></div>
+  </div>
+  <div class="past-detail-body" id="pastDetailBody"></div>
+</div>
 </body>
 </html>
