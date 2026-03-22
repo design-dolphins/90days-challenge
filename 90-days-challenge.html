@@ -227,7 +227,38 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 .edit-modal-header{display:flex;justify-content:space-between;align-items:center;padding:20px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
 .edit-modal-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--accent)}
 .edit-modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 4px}
-.edit-modal-body{padding:20px;overflow-y:auto;flex:1}</style>
+.edit-modal-body{padding:20px;overflow-y:auto;flex:1}
+/* Share card */
+.share-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:5000;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;padding:20px}
+.share-card{background:#f0ebe3;border:1px solid #c8a96e;border-radius:12px;width:100%;max-width:480px;padding:32px 28px;margin-bottom:16px}
+.share-card-header{text-align:center;margin-bottom:28px;border-bottom:1px solid #d4c9b8;padding-bottom:20px}
+.share-card-title{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:6px;color:#b8935a;line-height:1}
+.share-card-subtitle{font-family:'Space Mono',monospace;font-size:10px;color:#8a7a6a;letter-spacing:3px;margin-top:4px}
+.share-card-dates{font-family:'Space Mono',monospace;font-size:10px;color:#8a7a6a;margin-top:8px}
+.share-stats-row{display:flex;gap:0;margin-bottom:28px}
+.share-stat{flex:1;text-align:center}
+.share-stat-num{font-family:'Bebas Neue',sans-serif;font-size:36px;color:#b8935a;letter-spacing:2px;line-height:1}
+.share-stat-label{font-family:'Space Mono',monospace;font-size:8px;color:#8a7a6a;margin-top:3px;letter-spacing:1px}
+.share-section-title{font-family:'Space Mono',monospace;font-size:10px;color:#8a7a6a;letter-spacing:2px;margin-bottom:14px}
+.share-task-row{margin-bottom:12px}
+.share-task-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.share-task-name{font-size:12px;color:#2a2118;font-family:'Noto Sans JP',sans-serif}
+.share-task-pct{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#b8935a;letter-spacing:1px}
+.share-task-bar-bg{height:3px;background:#d4c9b8;border-radius:2px;overflow:hidden}
+.share-task-bar-fill{height:100%;background:#b8935a;border-radius:2px}
+.share-task-stat{font-family:'Space Mono',monospace;font-size:9px;color:#8a7a6a;margin-top:2px}
+.share-footer{text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid #d4c9b8}
+.share-footer-text{font-family:'Space Mono',monospace;font-size:9px;color:#8a7a6a;letter-spacing:2px}
+.share-actions{display:flex;gap:8px;width:100%;max-width:480px}
+.share-pdf-btn{flex:1;padding:14px;background:#c8a96e;border:none;color:#000;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;border-radius:6px;cursor:pointer}
+.share-close-btn{padding:14px 20px;background:transparent;border:1px solid #333;color:#555;font-family:'Space Mono',monospace;font-size:11px;border-radius:6px;cursor:pointer}
+@media print{
+  body > *:not(.share-overlay){display:none!important}
+  .share-overlay{position:static;background:#fff;padding:0}
+  .share-actions{display:none!important}
+  .share-card{border:1px solid #c8a96e;page-break-inside:avoid}
+}
+</style>
 </head>
 <body>
 
@@ -326,6 +357,7 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
   <div class="view" id="view-summary">
     <div class="sec-label">— タスク別達成率</div>
     <div id="summaryList"></div>
+    <button class="cta" style="margin-top:16px" onclick="showShareCard()">結果を共有する</button>
   </div>
 
   <!-- EDIT modal -->
@@ -696,7 +728,7 @@ function rebuildEditList(){
         <select class="field-select" data-idx="${i}" data-field="tag">
           <option value="mind" ${h.tag==='mind'?'selected':''}>MIND（内面・心身）</option>
           <option value="body" ${h.tag==='body'?'selected':''}>BODY（身体・健康）</option>
-          <option value="work" ${h.tag==='work'?'selected':''}>WORK（仕事・勉強）</option>
+          <option value="work" ${h.tag==='work'?'selected':''}>WORK（仕事・副業）</option>
           <option value="money" ${h.tag==='money'?'selected':''}>MONEY（お金・資産）</option>
           <option value="social" ${h.tag==='social'?'selected':''}>SOCIAL（人間関係）</option>
         </select></div>
@@ -740,8 +772,67 @@ function renderSummary(){
   });
 }
 
+
+function showShareCard(){
+  let s=gs();const cur=getCur(s);if(!cur)return;
+  const habits=getHabits(s);
+  const cd=currentDay(s);
+  const comp=(cur.done||[]).length;
+  const pct=Math.round(comp/90*100);
+  const end=new Date(cur.startDate+'T00:00:00');end.setDate(end.getDate()+89);
+
+  const tasksHtml=habits.map(h=>{
+    let count=0;
+    Object.values(cur.checks||{}).forEach(checks=>{if(checks.includes(h.id))count++;});
+    const p=Math.round(count/90*100);
+    return `<div class="share-task-row">
+      <div class="share-task-header">
+        <div class="share-task-name">${h.name}</div>
+        <div class="share-task-pct">${p}%</div>
+      </div>
+      <div class="share-task-bar-bg"><div class="share-task-bar-fill" style="width:${p}%"></div></div>
+      <div class="share-task-stat">${count}日達成 / ${cd}日経過</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('shareCard').innerHTML=`
+    <div class="share-card-header">
+      <div class="share-card-title">90 DAYS</div>
+      <div class="share-card-subtitle">CHALLENGE REPORT</div>
+      <div class="share-card-dates">${fmt(cur.startDate)} 〜 ${fmt(end.toISOString().slice(0,10))}</div>
+    </div>
+    <div class="share-stats-row">
+      <div class="share-stat">
+        <div class="share-stat-num">${cd}</div>
+        <div class="share-stat-label">CURRENT DAY</div>
+      </div>
+      <div class="share-stat">
+        <div class="share-stat-num">${comp}</div>
+        <div class="share-stat-label">DAYS DONE</div>
+      </div>
+      <div class="share-stat">
+        <div class="share-stat-num">${pct}%</div>
+        <div class="share-stat-label">PROGRESS</div>
+      </div>
+    </div>
+    <div class="share-section-title">— タスク別達成率</div>
+    ${tasksHtml}
+    <div class="share-footer">
+      <div class="share-footer-text">90 DAYS CHALLENGE</div>
+    </div>`;
+
+  document.getElementById('shareOverlay').style.display='flex';
+}
+
 (function init(){let s=gs();if(!s.challenges||!s.challenges.length){openSetup();return}render()})();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./90-days-sw.js'));
 </script>
+<div class="share-overlay" id="shareOverlay" style="display:none">
+  <div class="share-card" id="shareCard"></div>
+  <div class="share-actions">
+    <button class="share-pdf-btn" onclick="window.print()">PDFで保存</button>
+    <button class="share-close-btn" onclick="document.getElementById('shareOverlay').style.display='none'">閉じる</button>
+  </div>
+</div>
 </body>
 </html>
