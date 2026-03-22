@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>90 DAYS CHALLENGE</title>
+<link rel="manifest" href="90-days-manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="90 DAYS">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f0ebe3;--surface:#1a1a1a;--border:#2a2a2a;--accent:#c8a96e;--accent2:#4a9eff;--accent3:#b478c8;--text:#e8e8e8;--muted:#555;--done:#1a2e1a;--done-border:#3d7a3d}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;min-height:100vh;max-width:600px;margin:0 auto}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:999}
+.wrap{padding:0 20px}
+header{padding:32px 20px 0}
+.header-row{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:6px}
+.header-left{display:flex;align-items:baseline;gap:10px}
+h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:var(--accent);line-height:1}
+.subtitle{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px}
+.meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:20px;line-height:1.8}
+.meta span{color:var(--accent)}
+.meta a{color:var(--muted);text-decoration:underline;cursor:pointer}
+
+/* Tabs - only 2 */
+.tabs{display:flex;gap:4px;margin-bottom:20px}
+.tab{flex:1;padding:9px 4px;background:var(--surface);border:1px solid var(--border);border-radius:4px;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);cursor:pointer;text-align:center;letter-spacing:2px;transition:all .2s}
+.tab.active{border-color:var(--accent);color:var(--accent)}
+.view{display:none}
+.view.active{display:block}
+
+/* Stats row on top */
+.stats-row{display:flex;gap:8px;margin-bottom:20px}
+.stat-card{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);letter-spacing:2px;line-height:1}
+.stat-label{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;letter-spacing:1px}
+
+/* Progress bar */
+.prog-wrap{margin-bottom:20px}
+.prog-bar-bg{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:5px}
+.prog-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width .6s ease}
+.prog-label{display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)}
+.prog-label .big{color:var(--accent);font-size:12px}
+
+/* Grid */
+.sec-label{font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:2px;margin-bottom:10px;margin-top:30px}
+.progress-track{position:relative;height:9px;background:var(--border);border-radius:1px;margin-bottom:0;margin-top:4px}.progress-track-fill{height:100%;background:var(--accent);border-radius:1px;transition:width .6s ease}.progress-track-labels{display:flex;justify-content:space-between;align-items:flex-start;font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:16px;margin-top:6px}.progress-track-today{position:absolute;font-family:'Space Mono',monospace;font-size:9px;color:var(--text);transform:translateX(-50%);white-space:nowrap;margin-top:2px}
+.dot{aspect-ratio:1;border-radius:3px;background:var(--border);border:1px solid transparent;transition:all .15s}
+.dot.done{background:var(--accent);box-shadow:0 0 5px rgba(200,169,110,.3)}
+.dot.today{border-color:var(--accent2);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(74,158,255,.4)}50%{box-shadow:0 0 0 4px rgba(74,158,255,0)}}
+
+/* Habits */
+.phase-badge{display:inline-block;font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:700;color:var(--accent);background:none;border:none;padding:0;margin-bottom:0;letter-spacing:0}
+.habit{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:all .18s;position:relative;overflow:hidden}
+.habit::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--border);transition:background .2s}
+.habit.done::before{background:var(--accent)}
+.habit.done{background:var(--done);border-color:var(--done-border);opacity:.8}
+.chk{width:22px;height:22px;border-radius:50%;border:2px solid var(--muted);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .2s;cursor:pointer;user-select:none}
+.habit.done .chk{background:var(--accent);border-color:var(--accent);color:#000}
+.hinfo{flex:1;cursor:pointer;user-select:none}
+.hname{font-size:13px;font-weight:700;margin-bottom:2px}
+.habit.done .hname{text-decoration:line-through;color:var(--muted)}
+.hdesc{font-size:11px;color:var(--muted);line-height:1.4}
+.htag{font-family:'Space Mono',monospace;font-size:9px;padding:2px 6px;border-radius:2px;flex-shrink:0}
+.tag-mind{background:rgba(200,169,110,.15);color:var(--accent)}
+.tag-body{background:rgba(74,158,255,.15);color:var(--accent2)}
+.tag-work{background:rgba(80,200,120,.15);color:#50c878}
+.tag-money{background:rgba(255,200,50,.15);color:#ffc832}
+.tag-social{background:rgba(255,100,130,.15);color:#ff6482}
+
+/* CTA */
+.cta{width:100%;padding:15px;background:transparent;border:2px solid var(--accent);color:var(--accent);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;border-radius:6px;cursor:pointer;transition:all .2s;margin-bottom:16px;display:block}
+.cta:hover{background:var(--accent);color:#000}
+.cta:active{transform:scale(.98)}
+.cta.day-done{background:var(--done);border-color:var(--done-border);color:var(--done-border);cursor:default}
+.danger-btn{background:none;border:none;color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;text-decoration:underline;display:block;margin-left:auto;margin-bottom:20px}
+
+/* Reflection (inline in TODAY) */
+.reflect-block{margin-bottom:24px;margin-top:30px}
+.reflect-block-title{font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:2px;margin-bottom:8px}
+.reflect-area{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:13px;padding:12px;resize:none;min-height:80px;line-height:1.6}
+.reflect-area:focus{outline:none;border-color:var(--accent)}
+.reflect-footer{display:flex;align-items:center;margin-top:6px;gap:8px}
+.reflect-save-btn{padding:7px 14px;background:transparent;border:1px solid var(--accent);color:var(--accent);font-family:'Space Mono',monospace;font-size:10px;border-radius:4px;cursor:pointer;transition:all .2s}
+.reflect-save-btn:hover{background:var(--accent);color:#000}
+.reflect-saved{font-family:'Space Mono',monospace;font-size:10px;color:var(--done-border)}
+
+/* Phase guide */
+.phase-row{display:flex;gap:12px;margin-bottom:10px}
+.pdays{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent);width:60px;flex-shrink:0;padding-top:2px}
+.ptext{font-size:12px;color:var(--muted);line-height:1.5}
+.ptext strong{color:var(--accent);display:block;font-size:12px;margin-bottom:1px}
+.quote{padding:24px 0 50px;border-top:1px solid var(--border);text-align:center}
+.quote p{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:var(--muted);line-height:1.5}
+.quote p span{color:var(--accent)}
+
+/* HISTORY tab */
+.history-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-bottom:20px}
+.h-dot{aspect-ratio:1;border-radius:3px;background:var(--border);border:1px solid transparent;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:6px;color:#333}
+.h-dot.done{background:var(--accent);color:#6b4f00}
+.h-dot.today{border-color:var(--accent2)}
+.h-dot.selected{border-color:#fff;transform:scale(1.1)}
+.h-dot:hover{border-color:var(--accent)}
+
+/* Day detail panel */
+.day-detail{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:20px}
+.day-detail-title{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--accent);letter-spacing:2px;margin-bottom:2px;display:flex;justify-content:space-between;align-items:center}
+.day-detail-date{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:14px}
+.toggle-done-btn{font-family:'Space Mono',monospace;font-size:10px;padding:4px 10px;border-radius:3px;cursor:pointer}
+.toggle-done-btn.mark{background:transparent;border:1px solid var(--accent);color:var(--accent)}
+.toggle-done-btn.unmark{background:transparent;border:1px solid #a03030;color:#a03030}
+
+/* Check list (history) */
+.hcheck-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.hcheck-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg);border-radius:4px;cursor:pointer}
+.hcheck-box{width:18px;height:18px;border-radius:50%;border:2px solid var(--muted);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px}
+.hcheck-item.checked .hcheck-box{background:var(--accent);border-color:var(--accent);color:#000}
+.hcheck-label{font-size:12px}
+.hcheck-item.checked .hcheck-label{text-decoration:line-through;color:var(--muted)}
+
+/* Reflection in history */
+.hist-reflect-label{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:6px}
+.hist-reflect-area{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:12px;padding:10px;resize:none;min-height:70px;line-height:1.6}
+.hist-reflect-area:focus{outline:none;border-color:var(--accent)}
+.hist-reflect-footer{display:flex;align-items:center;margin-top:6px;gap:8px}
+.hist-reflect-save{padding:6px 12px;background:transparent;border:1px solid var(--accent);color:var(--accent);font-family:'Space Mono',monospace;font-size:9px;border-radius:4px;cursor:pointer}
+.hist-reflect-save:hover{background:var(--accent);color:#000}
+.hist-reflect-saved{font-family:'Space Mono',monospace;font-size:9px;color:var(--done-border)}
+
+/* Edit section in history */
+.edit-section-title{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;margin:16px 0 10px;padding-top:14px;border-top:1px solid var(--border)}
+.edit-habit-card{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:8px}
+.edit-habit-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.edit-habit-num{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);flex:1}
+.delete-btn{background:none;border:none;color:#803030;font-size:11px;cursor:pointer;padding:2px 6px;font-family:'Space Mono',monospace}
+.field-row{margin-bottom:7px}
+.field-label{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:3px}
+.field-input{background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:12px;padding:7px 9px;width:100%}
+.field-input:focus{outline:none;border-color:var(--accent)}
+.field-select{background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:11px;padding:7px 9px;width:100%;cursor:pointer}
+.field-select:focus{outline:none;border-color:var(--accent)}
+.add-habit-btn{width:100%;padding:10px;background:transparent;border:1px dashed var(--border);color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;border-radius:6px;cursor:pointer;transition:all .2s;margin-bottom:10px;letter-spacing:1px}
+.add-habit-btn:hover{border-color:var(--accent);color:var(--accent)}
+.save-tasks-btn{width:100%;padding:12px;background:var(--accent);border:none;color:#000;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;border-radius:6px;cursor:pointer;margin-bottom:6px}
+.save-tasks-btn:active{transform:scale(.98)}
+.saved-toast{text-align:center;font-family:'Space Mono',monospace;font-size:10px;color:var(--done-border);height:14px;margin-bottom:8px}
+
+/* Setup overlay */
+.setup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px}
+.setup-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:100%;max-width:440px;padding:28px 24px}
+.setup-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:3px;color:var(--accent);margin-bottom:6px}
+.setup-sub{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:24px;line-height:1.6}
+.setup-field{margin-bottom:16px}
+.setup-field label{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:6px}
+.setup-field input[type=date]{background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;padding:10px 12px;width:100%;cursor:pointer}
+.setup-field input[type=date]:focus{outline:none;border-color:var(--accent)}
+.setup-start-btn{width:100%;padding:14px;background:var(--accent);border:none;color:#000;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;border-radius:6px;cursor:pointer}
+.setup-start-btn:active{transform:scale(.98)}
+
+/* Completed banner */
+.completed-banner{background:linear-gradient(135deg,#1a2e1a,#0f1f0f);border:1px solid var(--done-border);border-radius:8px;padding:20px;margin-bottom:20px;text-align:center}
+.completed-banner h2{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--accent);margin-bottom:6px}
+.completed-banner p{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6}
+.new-challenge-btn{padding:12px 24px;background:var(--accent);border:none;color:#000;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;border-radius:6px;cursor:pointer}
+.empty-state{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);text-align:center;padding:20px}
+
+/* History day list */
+.history-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.history-title{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px}
+.edit-open-btn{font-family:'Space Mono',monospace;font-size:10px;padding:5px 12px;background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:4px;cursor:pointer;letter-spacing:1px;transition:all .2s}
+.edit-open-btn:hover{background:var(--accent);color:#000}
+.hist-day-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px}
+.hist-day-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.hist-day-num{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);letter-spacing:2px;line-height:1}
+.hist-day-date{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted)}
+.hist-day-badge{margin-left:auto}
+.hist-done-badge{font-family:'Space Mono',monospace;font-size:9px;padding:2px 8px;border-radius:2px;background:var(--done);border:1px solid var(--done-border);color:var(--done-border)}
+.hist-tasks{margin-bottom:10px}
+.hist-task-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.hist-task-item:last-child{border-bottom:none}
+.hist-task-chk{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--muted);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;transition:all .15s}
+.hist-task-item.checked .hist-task-chk{background:var(--accent);border-color:var(--accent);color:#000}
+.hist-task-name{font-size:12px;cursor:pointer}
+.hist-task-item.checked .hist-task-name{text-decoration:line-through;color:var(--muted)}
+.hist-reflect-label{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:5px}
+.hist-reflect-area{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:12px;padding:9px;resize:none;min-height:60px;line-height:1.6}
+.hist-reflect-area:focus{outline:none;border-color:var(--accent)}
+.hist-reflect-footer{display:flex;align-items:center;gap:8px;margin-top:5px}
+.hist-reflect-save{padding:5px 12px;background:transparent;border:1px solid var(--accent);color:var(--accent);font-family:'Space Mono',monospace;font-size:9px;border-radius:4px;cursor:pointer}
+.hist-reflect-save:hover{background:var(--accent);color:#000}
+.hist-reflect-saved{font-family:'Space Mono',monospace;font-size:9px;color:var(--done-border)}
+.hist-toggle-done{font-family:'Space Mono',monospace;font-size:9px;padding:3px 8px;border-radius:3px;cursor:pointer;margin-left:auto}
+.hist-toggle-done.mark{background:transparent;border:1px solid var(--accent);color:var(--accent)}
+.hist-toggle-done.unmark{background:transparent;border:1px solid #a03030;color:#a03030}
+.hist-edit-btn{font-family:'Space Mono',monospace;font-size:9px;padding:3px 10px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:3px;cursor:pointer;transition:all .2s;letter-spacing:1px}
+.hist-edit-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hist-edit-btn.open{border-color:var(--accent);color:var(--accent)}
+.hist-reflect-text{font-size:12px;color:var(--text);line-height:1.6;padding:8px 0;white-space:pre-wrap}
+.hist-reflect-empty{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);padding:6px 0}
+
+/* Edit modal */
+.edit-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;display:flex;align-items:flex-end;justify-content:center}
+.edit-modal{background:var(--surface);border:1px solid var(--border);border-radius:12px 12px 0 0;width:100%;max-width:600px;padding:20px;max-height:88vh;overflow-y:auto}
+.edit-modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.edit-modal-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--accent)}
+.edit-modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 4px}
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div class="setup-overlay" id="setupOverlay" style="display:none">
+  <div class="setup-box">
+    <div class="setup-title">90 DAYS</div>
+    <div class="setup-sub">チャレンジの開始日を選んでください。<br>今日から始める場合はそのままスタートを押してください。</div>
+    <div class="setup-field">
+      <label>開始日</label>
+      <input type="date" id="startDateInput">
+    </div>
+    <button class="setup-start-btn" onclick="startChallenge()">チャレンジを始める</button>
+  </div>
+</div>
+
+<header>
+  <div class="header-row">
+    <div class="header-left">
+      <h1>90 DAYS</h1>
+      <div class="subtitle">CHALLENGE</div>
+    </div>
+  </div>
+  <div class="meta">
+    開始: <span id="sd">—</span> &nbsp;／&nbsp; 終了予定: <span id="ed">—</span><br>
+    <a onclick="openSetup()">開始日を変更 / 新チャレンジ開始</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('today')">TODAY</div>
+    <div class="tab" onclick="switchTab('history')">HISTORY</div>
+  </div>
+
+  <!-- TODAY -->
+  <div class="view active" id="view-today">
+    <div class="completed-banner" id="completedBanner" style="display:none">
+      <h2>90日完走！</h2>
+      <p>おめでとうございます。あなたは変わりました。<br>新しいチャレンジを始めますか？</p>
+      <button class="new-challenge-btn" onclick="openSetup()">新しいチャレンジへ</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" id="statDay">—</div>
+        <div class="stat-label">CURRENT DAY</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="statComp">—</div>
+        <div class="stat-label">DAYS DONE</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="statPct">—</div>
+        <div class="stat-label">PROGRESS</div>
+      </div>
+    </div>
+
+    <div class="prog-wrap">
+      <div class="prog-bar-bg"><div class="prog-bar-fill" id="pb" style="width:0%"></div></div>
+      <div class="prog-label"><span class="big" id="dayLbl">DAY 0 / 90</span><span id="pct">0%</span></div>
+    </div>
+
+    <div class="sec-label">— 今日のタスク</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="phase-badge" style="margin-bottom:0" id="phaseBadge"></div><button class="edit-open-btn" onclick="openEdit()">EDIT TASKS</button></div>
+    <div id="habitList"></div>
+    <button class="cta" id="ctaBtn" onclick="completeDay()">今日を完了にする</button>
+
+    <!-- Reflection -->
+    <div class="reflect-block">
+      <div class="reflect-block-title">— 今日の振り返り</div>
+      <textarea class="reflect-area" id="reflectInput" placeholder="今日気づいたこと、感じたこと、明日試したいこと…" rows="4"></textarea>
+      <div class="reflect-footer">
+        <button class="reflect-save-btn" onclick="saveReflection()">保存する</button>
+        <span class="reflect-saved" id="reflectSaved"></span>
+      </div>
+    </div>
+
+
+    <div class="sec-label">— フェーズガイド</div>
+    <div style="margin-bottom:24px">
+      <div class="phase-row"><div class="pdays">1〜30日</div><div class="ptext"><strong>PHASE 1 — 基盤を作る</strong>新しい習慣の土台を作る期間。完璧を求めず続けることに集中する。</div></div>
+      <div class="phase-row"><div class="pdays">31〜60日</div><div class="ptext"><strong>PHASE 2 — 深める</strong>習慣が定着し始める。新しいタスクを追加して負荷を上げる。</div></div>
+      <div class="phase-row"><div class="pdays">61〜90日</div><div class="ptext"><strong>PHASE 3 — 完成させる</strong>これが「普通」になる。90日達成で人生が変わる。</div></div>
+    </div>
+    <div class="quote"><p id="qt"></p></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="view" id="view-history">
+    <div id="historyDayList"></div>
+  </div>
+
+  <!-- EDIT modal -->
+  <div class="edit-overlay" id="editOverlay" style="display:none">
+    <div class="edit-modal">
+      <div class="edit-modal-header">
+        <div class="edit-modal-title">EDIT TASKS</div>
+        <button class="edit-modal-close" onclick="closeEdit()">✕</button>
+      </div>
+      <div id="editList"></div>
+      <button class="add-habit-btn" onclick="addHabit()">＋ タスクを追加</button>
+      <div class="saved-toast" id="savedToast"></div>
+      <button class="save-tasks-btn" onclick="saveHabits()">タスクを保存する</button>
+      <button class="danger-btn" onclick="resetHabits()">デフォルトに戻す</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEFAULT_HABITS=[
+  {id:'sns', name:'SNSを開かない',  desc:'アプリ削除 or PC経由のみ', tag:'mind',phase:1},
+  {id:'walk',name:'8,000歩 歩く',  desc:'通勤＋昼休み歩きで達成',   tag:'body',phase:1},
+  {id:'med', name:'瞑想10分',      desc:'朝か就寝前。呼吸に集中',   tag:'mind',phase:1},
+];
+const QUOTES=[
+  '「その他大勢と同じ生活をしていては、<br><span>その他大勢の結果</span>しか得られない」',
+  '「<span>孤独になれ</span>。<br>成功したければ」',
+  '「暇だから<span>仕事をする</span>。<br>それが最強の状態だ」',
+  '「<span>注意力</span>を奪われることは、<br>人生の主導権を手放すことと同じ」',
+  '「才能ではない。<br>一定期間<span>修行</span>したかどうかだ」',
+  '「<span>90日後</span>の自分は、<br>今日の選択でできている」',
+];
+const KEY='90days-v1';
+function gs(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return{}}}
+function ss(s){localStorage.setItem(KEY,JSON.stringify(s))}
+function today(){return new Date().toISOString().slice(0,10)}
+function fmt(d){if(!d)return'—';const dt=new Date(d+'T00:00:00');return`${dt.getFullYear()}/${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')}`}
+function dateOfDay(start,n){const d=new Date(start+'T00:00:00');d.setDate(d.getDate()+n-1);return d.toISOString().slice(0,10)}
+function getCur(s){if(!s.challenges||!s.challenges.length)return null;return s.challenges[s.challenges.length-1]}
+function currentDay(s){const c=getCur(s);if(!c||!c.startDate)return 1;return Math.min(Math.floor((Date.now()-new Date(c.startDate+'T00:00:00'))/86400000)+1,90)}
+function phase(d){if(d<=30)return{n:1,label:'PHASE 1 — 基盤を作る'};if(d<=60)return{n:2,label:'PHASE 2 — 深める'};return{n:3,label:'PHASE 3 — 完成させる'}}
+function getHabits(s){return s.customHabits||DEFAULT_HABITS}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5)}
+
+function openSetup(){document.getElementById('startDateInput').value=today();document.getElementById('setupOverlay').style.display='flex'}
+function startChallenge(){
+  const d=document.getElementById('startDateInput').value||today();
+  let s=gs();if(!s.challenges)s.challenges=[];
+  const cur=getCur(s);if(cur&&!cur.endDate)cur.endDate=today();
+  s.challenges.push({id:uid(),startDate:d,done:[],checks:{},reflections:{}});
+  ss(s);document.getElementById('setupOverlay').style.display='none';render();
+}
+
+function switchTab(tab){
+  ['today','history'].forEach((t,i)=>{
+    document.querySelectorAll('.tab')[i].classList.toggle('active',t===tab);
+    document.getElementById('view-'+t).classList.toggle('active',t===tab);
+  });
+  if(tab==='history'){renderHistory();renderEdit();}
+}
+
+function render(){
+  let s=gs();const cur=getCur(s);if(!cur){openSetup();return}
+  const end=new Date(cur.startDate+'T00:00:00');end.setDate(end.getDate()+89);
+  document.getElementById('sd').textContent=fmt(cur.startDate);
+  document.getElementById('ed').textContent=fmt(end.toISOString().slice(0,10));
+  const cd=currentDay(s),comp=(cur.done||[]).length,pct=Math.round(comp/90*100);
+  document.getElementById('pb').style.width=pct+'%';
+  document.getElementById('dayLbl').textContent=`DAY ${cd} / 90`;
+  document.getElementById('pct').textContent=pct+'%';
+  document.getElementById('statDay').textContent=cd;
+  document.getElementById('statComp').textContent=comp;
+  document.getElementById('statPct').textContent=pct+'%';
+  const ph=phase(cd);
+  document.getElementById('phaseBadge').textContent=ph.label;
+  document.getElementById('qt').innerHTML=QUOTES[cd%QUOTES.length];
+  document.getElementById('completedBanner').style.display=(cd>=90&&comp>=89)?'block':'none';
+
+  // Progress bar (top) also reflects completed days
+  document.getElementById('pb').style.width=pct+'%';
+
+  // Habits
+  const habits=getHabits(s),td=today(),todayChecks=(cur.checks||{})[td]||[];
+  const visible=habits.filter(h=>h.phase<=ph.n);
+  const list=document.getElementById('habitList');list.innerHTML='';
+  visible.forEach(h=>{
+    const done=todayChecks.includes(h.id);
+    const el=document.createElement('div');el.className='habit'+(done?' done':'');
+    el.innerHTML=`<div class="chk" onclick="toggleHabit('${h.id}')">${done?'✓':''}</div><div class="hinfo" onclick="toggleHabit('${h.id}')"><div class="hname">${h.name}</div><div class="hdesc">${h.desc}</div></div><div class="htag tag-${h.tag}">${h.tag.toUpperCase()}</div>`;
+    list.appendChild(el);
+  });
+
+  // CTA
+  const alreadyDone=(cur.done||[]).includes(cd);
+  const btn=document.getElementById('ctaBtn');
+  if(alreadyDone){btn.textContent=`✓ DAY ${cd} 完了！`;btn.className='cta day-done'}
+  else{btn.textContent=`今日を完了にする（${todayChecks.length}/${visible.length}）`;btn.className='cta'}
+
+  // Today's reflection
+  document.getElementById('reflectInput').value=(cur.reflections||{})[td]||'';
+}
+
+function toggleHabit(id){
+  let s=gs();const cur=getCur(s);if(!cur)return;
+  const td=today();if(!cur.checks)cur.checks={};if(!cur.checks[td])cur.checks[td]=[];
+  const idx=cur.checks[td].indexOf(id);
+  if(idx===-1)cur.checks[td].push(id);else cur.checks[td].splice(idx,1);
+  ss(s);render();
+  // Also refresh history view if it's open
+  if(document.getElementById('view-history').classList.contains('active')) renderHistory();
+}
+function completeDay(){
+  let s=gs();const cur=getCur(s);if(!cur)return;
+  const cd=currentDay(s);if((cur.done||[]).includes(cd))return;
+  if(!cur.done)cur.done=[];cur.done.push(cd);ss(s);render();
+  if(document.getElementById('view-history').classList.contains('active')) renderHistory();
+}
+function resetCurrent(){
+  if(!confirm('現在のチャレンジをリセットしますか？'))return;
+  let s=gs();if(s.challenges&&s.challenges.length)s.challenges.pop();ss(s);render();
+}
+
+// Reflection (today)
+function saveReflection(){
+  const text=document.getElementById('reflectInput').value.trim();if(!text)return;
+  let s=gs();const cur=getCur(s);if(!cur)return;
+  if(!cur.reflections)cur.reflections={};cur.reflections[today()]=text;ss(s);
+  const el=document.getElementById('reflectSaved');el.textContent='✓ 保存しました';setTimeout(()=>el.textContent='',2000);
+}
+
+// HISTORY - day list style
+function renderHistory(){
+  let s=gs();const cur=getCur(s);if(!cur)return;
+  const cd=currentDay(s);
+  const habits=getHabits(s);
+  const container=document.getElementById('historyDayList');
+  container.innerHTML=`<div class="history-title" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:16px">— 過去の記録</div>`;
+
+  // Show days from current day down to 1
+  for(let n=cd;n>=1;n--){
+    const ph=phase(n);
+    // For current day, use actual today() to match how TODAY tab saves data
+    const dateKey = (n===cd) ? today() : dateOfDay(cur.startDate,n);
+    const checks=(cur.checks||{})[dateKey]||[];
+    const isDone=(cur.done||[]).includes(n);
+    const reflect=(cur.reflections||{})[dateKey]||'';
+    const visible=habits.filter(h=>h.phase<=ph.n);
+
+    const card=document.createElement('div');
+    card.className='hist-day-card';
+    card.id=`hist-card-${n}`;
+
+    const tasksHtml=visible.map(h=>{
+      const c=checks.includes(h.id);
+      return `<div class="hist-task-item${c?' checked':''}">
+        <div class="hist-task-chk" style="cursor:default">${c?'✓':''}</div>
+        <div class="hist-task-name">${h.name}</div>
+      </div>`;
+    }).join('');
+
+    // Edit tasks (interactive)
+    const editTasksHtml=visible.map(h=>{
+      const c=checks.includes(h.id);
+      return `<div class="hist-task-item${c?' checked':''}" onclick="toggleHistCheck(${n},'${h.id}')">
+        <div class="hist-task-chk">${c?'✓':''}</div>
+        <div class="hist-task-name">${h.name}</div>
+      </div>`;
+    }).join('');
+
+    const reflectDisplay = reflect
+      ? `<div class="hist-reflect-text">${reflect.replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>`
+      : `<div class="hist-reflect-empty">振り返りなし</div>`;
+
+    card.innerHTML=`
+      <div class="hist-day-header">
+        <div>
+          <div class="hist-day-num">DAY ${n}</div>
+          <div class="hist-day-date">${fmt(dateKey)}</div>
+        </div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+          ${isDone?'<span class="hist-done-badge">✓ 完了</span>':'<span class="hist-done-badge" style="border-color:var(--border);color:var(--muted)">未完了</span>'}
+          <button class="hist-edit-btn" onclick="toggleHistEdit(${n})" id="edit-btn-${n}">EDIT</button>
+        </div>
+      </div>
+      <div class="hist-tasks" id="hist-view-tasks-${n}">${tasksHtml}</div>
+      <div class="hist-reflect-label">— 振り返り</div>
+      <div id="hist-view-reflect-${n}">${reflectDisplay}</div>
+      <div class="hist-edit-area" id="hist-edit-${n}" style="display:none">
+        <div class="hist-tasks" id="hist-edit-tasks-${n}">${editTasksHtml}</div>
+        <div class="hist-reflect-label" style="margin-top:10px">— 振り返りを編集</div>
+        <textarea class="hist-reflect-area" id="reflect-${n}" rows="3" placeholder="この日の振り返り…">${reflect.replace(/</g,'&lt;')}</textarea>
+        <div class="hist-reflect-footer">
+          <button class="hist-reflect-save" onclick="saveHistReflectAndClose(${n},'${dateKey}')">保存して閉じる</button>
+          <span class="hist-reflect-saved" id="reflect-saved-${n}"></span>
+        </div>
+      </div>`;
+    container.appendChild(card);
+  }
+}
+
+function saveHistReflect(n,dateKey){
+  const text=document.getElementById(`reflect-${n}`).value.trim();
+  let s=gs();const cur=getCur(s);if(!cur)return;
+  if(!cur.reflections)cur.reflections={};
+  if(text)cur.reflections[dateKey]=text;else delete cur.reflections[dateKey];
+  ss(s);
+  const el=document.getElementById(`reflect-saved-${n}`);
+  el.textContent='✓ 保存しました';setTimeout(()=>el.textContent='',2000);
+}
+
+function toggleDayDone(n){
+  let s=gs();const cur=getCur(s);if(!cur)return;
+  if(!cur.done)cur.done=[];const idx=cur.done.indexOf(n);
+  if(idx===-1)cur.done.push(n);else cur.done.splice(idx,1);
+  ss(s);render();renderHistory();
+}
+function toggleHistCheck(n,id){
+  let s=gs();const cur=getCur(s);if(!cur)return;
+  const dateKey=dateOfDay(cur.startDate,n);
+  if(!cur.checks)cur.checks={};if(!cur.checks[dateKey])cur.checks[dateKey]=[];
+  const idx=cur.checks[dateKey].indexOf(id);
+  if(idx===-1)cur.checks[dateKey].push(id);else cur.checks[dateKey].splice(idx,1);
+  ss(s);
+  // Update view tasks (read-only) to reflect new check state
+  const habits=getHabits(s),ph=phase(n),checks2=(cur.checks||{})[dateKey]||[];
+  const visible=habits.filter(h=>h.phase<=ph.n);
+  const viewEl=document.getElementById(`hist-view-tasks-${n}`);
+  if(viewEl){
+    viewEl.innerHTML=visible.map(h=>{
+      const c=checks2.includes(h.id);
+      return `<div class="hist-task-item${c?' checked':''}"><div class="hist-task-chk" style="cursor:default">${c?'✓':''}</div><div class="hist-task-name">${h.name}</div></div>`;
+    }).join('');
+  }
+  // Update edit tasks too
+  const editEl=document.getElementById(`hist-edit-tasks-${n}`);
+  if(editEl){
+    editEl.innerHTML=visible.map(h=>{
+      const c=checks2.includes(h.id);
+      return `<div class="hist-task-item${c?' checked':''}" onclick="toggleHistCheck(${n},'${h.id}')"><div class="hist-task-chk">${c?'✓':''}</div><div class="hist-task-name">${h.name}</div></div>`;
+    }).join('');
+  }
+  render();
+}
+
+function toggleHistEdit(n){
+  const area=document.getElementById(`hist-edit-${n}`);
+  const btn=document.getElementById(`edit-btn-${n}`);
+  const isOpen=area.style.display!=='none';
+  area.style.display=isOpen?'none':'block';
+  btn.classList.toggle('open',!isOpen);
+  btn.textContent=isOpen?'EDIT':'閉じる';
+}
+
+function saveHistReflectAndClose(n,dateKey){
+  const text=document.getElementById(`reflect-${n}`).value.trim();
+  let s=gs();const cur=getCur(s);if(!cur)return;
+  if(!cur.reflections)cur.reflections={};
+  if(text)cur.reflections[dateKey]=text;else delete cur.reflections[dateKey];
+  ss(s);
+  // update view
+  const viewEl=document.getElementById(`hist-view-reflect-${n}`);
+  if(text){
+    viewEl.innerHTML=`<div class="hist-reflect-text">${text.replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>`;
+  } else {
+    viewEl.innerHTML='<div class="hist-reflect-empty">振り返りなし</div>';
+  }
+  // close edit
+  document.getElementById(`hist-edit-${n}`).style.display='none';
+  const btn=document.getElementById(`edit-btn-${n}`);
+  btn.classList.remove('open');
+  btn.textContent='EDIT';
+}
+
+// EDIT modal
+function openEdit(){renderEdit();document.getElementById('editOverlay').style.display='flex'}
+function closeEdit(){document.getElementById('editOverlay').style.display='none'}
+
+// EDIT (in history tab)
+let editHabits=[];
+function renderEdit(){
+  let s=gs();editHabits=JSON.parse(JSON.stringify(getHabits(s)));rebuildEditList();
+}
+function rebuildEditList(){
+  const list=document.getElementById('editList');list.innerHTML='';
+  editHabits.forEach((h,i)=>{
+    const card=document.createElement('div');card.className='edit-habit-card';
+    card.innerHTML=`
+      <div class="edit-habit-header"><div class="edit-habit-num">TASK ${i+1}</div><button class="delete-btn" onclick="deleteHabit(${i})">✕ 削除</button></div>
+      <div class="field-row"><div class="field-label">タスク名</div><input class="field-input" value="${h.name.replace(/"/g,'&quot;')}" data-idx="${i}" data-field="name"></div>
+      <div class="field-row"><div class="field-label">説明</div><input class="field-input" value="${h.desc.replace(/"/g,'&quot;')}" data-idx="${i}" data-field="desc"></div>
+      <div class="field-row"><div class="field-label">タグ</div>
+        <select class="field-select" data-idx="${i}" data-field="tag">
+          <option value="mind" ${h.tag==='mind'?'selected':''}>MIND（内面・心身）</option>
+          <option value="body" ${h.tag==='body'?'selected':''}>BODY（身体・健康）</option>
+          <option value="work" ${h.tag==='work'?'selected':''}>WORK（仕事・副業）</option>
+          <option value="money" ${h.tag==='money'?'selected':''}>MONEY（お金・資産）</option>
+          <option value="social" ${h.tag==='social'?'selected':''}>SOCIAL（人間関係）</option>
+        </select></div>
+      <div class="field-row"><div class="field-label">表示フェーズ</div>
+        <select class="field-select" data-idx="${i}" data-field="phase">
+          <option value="1" ${h.phase===1?'selected':''}>PHASE 1（1日目〜）</option>
+          <option value="2" ${h.phase===2?'selected':''}>PHASE 2（31日目〜）</option>
+          <option value="3" ${h.phase===3?'selected':''}>PHASE 3（61日目〜）</option>
+        </select></div>`;
+    card.querySelectorAll('[data-field]').forEach(el=>{
+      el.addEventListener('input',e=>{const idx=+e.target.dataset.idx,f=e.target.dataset.field;editHabits[idx][f]=f==='phase'?+e.target.value:e.target.value});
+      el.addEventListener('change',e=>{const idx=+e.target.dataset.idx,f=e.target.dataset.field;editHabits[idx][f]=f==='phase'?+e.target.value:e.target.value});
+    });
+    list.appendChild(card);
+  });
+}
+function deleteHabit(i){if(!confirm(`「${editHabits[i].name}」を削除しますか？`))return;editHabits.splice(i,1);rebuildEditList()}
+function addHabit(){editHabits.push({id:uid(),name:'新しいタスク',desc:'',tag:'mind',phase:1});rebuildEditList();setTimeout(()=>{const cards=document.querySelectorAll('.edit-habit-card');cards[cards.length-1].scrollIntoView({behavior:'smooth'})},100)}
+function saveHabits(){
+  if(editHabits.some(h=>!h.name.trim())){alert('タスク名が空のものがあります。');return}
+  let s=gs();s.customHabits=editHabits;ss(s);render();
+  const t=document.getElementById('savedToast');t.textContent='✓ 保存しました';setTimeout(()=>t.textContent='',2000);
+}
+function resetHabits(){if(!confirm('タスクをデフォルトに戻しますか？'))return;let s=gs();delete s.customHabits;ss(s);renderEdit();render()}
+
+(function init(){let s=gs();if(!s.challenges||!s.challenges.length){openSetup();return}render()})();
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./90-days-sw.js'));
+</script>
+</body>
+</html>
