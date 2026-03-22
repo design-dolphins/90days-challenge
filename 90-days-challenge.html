@@ -151,15 +151,15 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 .saved-toast{text-align:center;font-family:'Space Mono',monospace;font-size:10px;color:var(--done-border);height:14px;margin-bottom:8px}
 
 /* Setup overlay */
-.setup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px}
-.setup-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:100%;max-width:440px;padding:28px 24px}
+.setup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:3000;display:flex;align-items:center;justify-content:center}
+.setup-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:calc(100% - 40px);max-width:440px;padding:24px;box-sizing:border-box}
 .setup-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:3px;color:var(--accent);margin-bottom:6px}
 .setup-sub{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:24px;line-height:1.6}
 .setup-field{margin-bottom:16px}
 .setup-field label{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:6px}
-.setup-field input[type=date]{background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;padding:10px 12px;width:100%;cursor:pointer}
+.setup-field input[type=date]{width:100%;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;box-sizing:border-box;-webkit-appearance:none;appearance:none}
 .setup-field input[type=date]:focus{outline:none;border-color:var(--accent)}
-.setup-start-btn{width:100%;padding:14px;background:var(--accent);border:none;color:#000;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;border-radius:6px;cursor:pointer}
+.setup-start-btn{width:100%;padding:14px;background:var(--accent);border:none;color:#000;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;border-radius:6px;cursor:pointer;box-sizing:border-box}
 .setup-start-btn:active{transform:scale(.98)}
 
 /* Completed banner */
@@ -220,7 +220,7 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
     <div class="setup-sub">チャレンジの開始日を選んでください。<br>今日から始める場合はそのままスタートを押してください。</div>
     <div class="setup-field">
       <label>開始日</label>
-      <input type="date" id="startDateInput">
+      <input type="date" id="startDateInput" style="width:100%;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;box-sizing:border-box">
     </div>
     <button class="setup-start-btn" onclick="startChallenge()">チャレンジを始める</button>
   </div>
@@ -613,7 +613,7 @@ function addHabit(){editHabits.push({id:uid(),name:'新しいタスク',desc:'',
 function saveHabits(){
   if(editHabits.some(h=>!h.name.trim())){alert('タスク名が空のものがあります。');return}
   let s=gs();s.customHabits=editHabits;ss(s);render();
-  const t=document.getElementById('savedToast');t.textContent='✓ 保存しました';setTimeout(()=>t.textContent='',2000);
+  closeEdit();
 }
 function resetHabits(){if(!confirm('タスクをデフォルトに戻しますか？'))return;let s=gs();delete s.customHabits;ss(s);renderEdit();render()}
 
