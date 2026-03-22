@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;700&family=Space+Mono&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f0ebe3;--surface:#1a1a1a;--border:#2a2a2a;--accent:#c8a96e;--accent2:#4a9eff;--accent3:#b478c8;--text:#e8e8e8;--muted:#555;--done:#1a2e1a;--done-border:#3d7a3d}
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--accent:#c8a96e;--accent2:#4a9eff;--accent3:#b478c8;--text:#e8e8e8;--muted:#555;--done:#1a2e1a;--done-border:#3d7a3d}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;min-height:100vh;max-width:600px;margin:0 auto}
@@ -600,12 +600,7 @@ function rebuildEditList(){
           <option value="money" ${h.tag==='money'?'selected':''}>MONEY（お金・資産）</option>
           <option value="social" ${h.tag==='social'?'selected':''}>SOCIAL（人間関係）</option>
         </select></div>
-      <div class="field-row"><div class="field-label">表示フェーズ</div>
-        <select class="field-select" data-idx="${i}" data-field="phase">
-          <option value="1" ${h.phase===1?'selected':''}>PHASE 1（1日目〜）</option>
-          <option value="2" ${h.phase===2?'selected':''}>PHASE 2（31日目〜）</option>
-          <option value="3" ${h.phase===3?'selected':''}>PHASE 3（61日目〜）</option>
-        </select></div>`;
+    `;
     card.querySelectorAll('[data-field]').forEach(el=>{
       el.addEventListener('input',e=>{const idx=+e.target.dataset.idx,f=e.target.dataset.field;editHabits[idx][f]=f==='phase'?+e.target.value:e.target.value});
       el.addEventListener('change',e=>{const idx=+e.target.dataset.idx,f=e.target.dataset.field;editHabits[idx][f]=f==='phase'?+e.target.value:e.target.value});
