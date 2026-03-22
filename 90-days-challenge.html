@@ -579,7 +579,7 @@ function renderHistory(){
   var title = document.createElement("div");
   title.className = "sec-label";
   title.style.marginTop = "0";
-  title.textContent = "— 過去の記録";
+  title.textContent = "— 今回の記録";
   container.appendChild(title);
 
   var showAllDays = document.getElementById("historyDayList")._showAll || false;
@@ -907,9 +907,7 @@ function rebuildEditList(){
       {v:"mind",t:"MIND（内面・心身）"},{v:"body",t:"BODY（身体・健康）"},
       {v:"work",t:"WORK（仕事・勉強）"},{v:"money",t:"MONEY（お金・資産）"},{v:"social",t:"SOCIAL（人間関係）"}
     ]));
-    card.appendChild(makeField("表示フェーズ","phase",[
-      {v:1,t:"PHASE 1（1日目〜）"},{v:2,t:"PHASE 2（31日目〜）"},{v:3,t:"PHASE 3（61日目〜）"}
-    ]));
+
     list.appendChild(card);
   });
 }
