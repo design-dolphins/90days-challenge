@@ -373,6 +373,8 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
         <button class="edit-modal-close" onclick="document.getElementById('settingsOverlay').style.display='none'">✕</button>
       </div>
       <div class="edit-modal-body">
+        <div class="sec-label">— チャレンジ履歴</div>
+        <div id="challengeHistoryList" style="margin-bottom:20px"></div>
         <div class="sec-label">— チャレンジ</div>
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
           <button class="cta" onclick="document.getElementById('settingsOverlay').style.display='none';openSetup('change')">開始日を変更</button>
@@ -861,7 +863,40 @@ function saveAsImage(){
 }
 
 
-function openSettings(){document.getElementById("settingsOverlay").style.display="flex"}
+function openSettings(){
+  document.getElementById("settingsOverlay").style.display="flex";
+  renderChallengeHistory();
+}
+
+function renderChallengeHistory(){
+  let s=gs();
+  const list=document.getElementById('challengeHistoryList');
+  if(!list)return;
+  if(!s.challenges||!s.challenges.length){
+    list.innerHTML="<div style='font-size:10px;color:var(--muted);padding:8px 0'>まだ履歴がありません</div>";
+    return;
+  }
+  list.innerHTML='';
+  [...s.challenges].reverse().forEach((c,i)=>{
+    const num=s.challenges.length-i;
+    const comp=(c.done||[]).length;
+    const pct=Math.round(comp/90*100);
+    const end=new Date(c.startDate+'T00:00:00');end.setDate(end.getDate()+89);
+    const endStr=`${end.getFullYear()}/${String(end.getMonth()+1).padStart(2,'0')}/${String(end.getDate()).padStart(2,'0')}`;
+    const card=document.createElement('div');
+    card.style.cssText='background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:8px';
+    card.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--accent);letter-spacing:2px">CHALLENGE #${num}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted)">${comp}/90日（${pct}%）</div>
+      </div>
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:6px">${fmt(c.startDate)} 〜 ${endStr}</div>
+      <div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:var(--accent);border-radius:2px"></div>
+      </div>`;
+    list.appendChild(card);
+  });
+}
 
 function exportData(){
   const data = localStorage.getItem('90days-v1') || '{}';
