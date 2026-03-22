@@ -35,10 +35,6 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 .view.active{display:block}
 
 /* Stats row on top */
-.stats-row{display:flex;gap:0;margin-bottom:20px;border-radius:6px;padding:12px 0;background:var(--surface)}
-.stat-card{flex:1;text-align:center;padding:8px 4px}
-.stat-num{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--accent);letter-spacing:2px;line-height:1}
-.stat-label{font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);margin-top:3px;letter-spacing:1px}
 
 /* Progress bar */
 .prog-wrap{margin-bottom:20px}
@@ -101,27 +97,19 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 .quote p span{color:var(--accent)}
 
 /* HISTORY tab */
-.history-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-bottom:20px}
-.h-dot{aspect-ratio:1;border-radius:3px;background:var(--border);border:1px solid transparent;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:6px;color:#333}
 .h-dot.done{background:var(--accent);color:#6b4f00}
 .h-dot.today{border-color:var(--accent2)}
 .h-dot.selected{border-color:#fff;transform:scale(1.1)}
 .h-dot:hover{border-color:var(--accent)}
 
 /* Day detail panel */
-.day-detail{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:20px}
 .day-detail-title{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--accent);letter-spacing:2px;margin-bottom:2px;display:flex;justify-content:space-between;align-items:center}
 .day-detail-date{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:14px}
-.toggle-done-btn{font-family:'Space Mono',monospace;font-size:10px;padding:4px 10px;border-radius:3px;cursor:pointer}
 .toggle-done-btn.mark{background:transparent;border:1px solid var(--accent);color:var(--accent)}
 .toggle-done-btn.unmark{background:transparent;border:1px solid #a03030;color:#a03030}
 
 /* Check list (history) */
-.hcheck-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
-.hcheck-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg);border-radius:4px;cursor:pointer}
-.hcheck-box{width:18px;height:18px;border-radius:50%;border:2px solid var(--muted);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px}
 .hcheck-item.checked .hcheck-box{background:var(--accent);border-color:var(--accent);color:#000}
-.hcheck-label{font-size:12px}
 .hcheck-item.checked .hcheck-label{text-decoration:line-through;color:var(--muted)}
 
 /* Reflection in history */
@@ -134,7 +122,6 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 .hist-reflect-saved{font-family:'Space Mono',monospace;font-size:9px;color:var(--done-border)}
 
 /* Edit section in history */
-.edit-section-title{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;margin:16px 0 10px;padding-top:14px;border-top:1px solid var(--border)}
 .edit-habit-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:8px}
 .edit-habit-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .edit-habit-num{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);flex:1}
@@ -450,7 +437,14 @@ function today(){
   return `${y}-${m}-${day}`;
 }
 function fmt(d){if(!d)return'—';const dt=new Date(d+'T00:00:00');return`${dt.getFullYear()}/${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')}`}
-function dateOfDay(start,n){const d=new Date(start+'T00:00:00');d.setDate(d.getDate()+n-1);return d.toISOString().slice(0,10)}
+function dateOfDay(start,n){
+  const d=new Date(start+'T00:00:00');
+  d.setDate(d.getDate()+n-1);
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
 function getCur(s){if(!s.challenges||!s.challenges.length)return null;return s.challenges[s.challenges.length-1]}
 function currentDay(s){
   const c=getCur(s);if(!c||!c.startDate)return 1;
