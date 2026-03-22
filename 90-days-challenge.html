@@ -42,7 +42,7 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 /* Progress bar */
 .prog-wrap{margin-bottom:20px}
 .prog-bar-bg{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:5px}
-.prog-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width .6s ease}
+.prog-bar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .6s ease}
 .prog-label{display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)}
 .prog-label .big{color:var(--accent);font-size:12px}
 
@@ -168,6 +168,24 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 .completed-banner p{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6}
 .new-challenge-btn{padding:12px 24px;background:var(--accent);border:none;color:#000;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;border-radius:6px;cursor:pointer}
 .empty-state{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);text-align:center;padding:20px}
+.summary-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:10px}
+.summary-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.summary-task-name{font-size:13px;font-weight:700}
+.summary-pct{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);letter-spacing:1px}
+.summary-bar-bg{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:6px}
+.summary-bar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .6s ease}
+.summary-stat{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted)}
+.summary-tag{font-family:'Space Mono',monospace;font-size:9px;padding:2px 6px;border-radius:2px}
+.completion-popup{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:4000;display:flex;align-items:center;justify-content:center;padding:20px}
+.completion-box{background:var(--surface);border:1px solid var(--accent);border-radius:12px;width:100%;max-width:400px;padding:24px}
+.completion-title{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);letter-spacing:3px;margin-bottom:4px}
+.completion-day{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:16px}
+.completion-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.completion-name{font-size:12px;flex:1}
+.completion-pct{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--accent);letter-spacing:1px;width:42px;text-align:right}
+.completion-mini-bar-bg{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.completion-mini-bar-fill{height:100%;background:var(--accent);border-radius:2px}
+.completion-close-btn{width:100%;padding:12px;background:var(--accent);border:none;color:#000;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;border-radius:6px;cursor:pointer;margin-top:16px}
 
 /* History day list */
 .history-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
@@ -205,11 +223,11 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 
 /* Edit modal */
 .edit-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;display:flex;align-items:flex-end;justify-content:center}
-.edit-modal{background:var(--surface);border:1px solid var(--border);border-radius:12px 12px 0 0;width:100%;max-width:600px;padding:20px;max-height:88vh;overflow-y:auto}
-.edit-modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.edit-modal{background:var(--surface);border:1px solid var(--border);border-radius:12px 12px 0 0;width:100%;max-width:600px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+.edit-modal-header{display:flex;justify-content:space-between;align-items:center;padding:20px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
 .edit-modal-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--accent)}
 .edit-modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 4px}
-</style>
+.edit-modal-body{padding:20px;overflow-y:auto;flex:1}</style>
 </head>
 <body>
 
@@ -243,6 +261,7 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
   <div class="tabs">
     <div class="tab active" onclick="switchTab('today')">TODAY</div>
     <div class="tab" onclick="switchTab('history')">HISTORY</div>
+    <div class="tab" onclick="switchTab('summary')">SUMMARY</div>
   </div>
 
   <!-- TODAY -->
@@ -300,6 +319,12 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
     <div id="historyDayList"></div>
   </div>
 
+  <!-- SUMMARY -->
+  <div class="view" id="view-summary">
+    <div class="sec-label">— タスク別達成率</div>
+    <div id="summaryList"></div>
+  </div>
+
   <!-- EDIT modal -->
   <div class="edit-overlay" id="editOverlay" style="display:none">
     <div class="edit-modal">
@@ -307,11 +332,13 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
         <div class="edit-modal-title">EDIT TASKS</div>
         <button class="edit-modal-close" onclick="closeEdit()">✕</button>
       </div>
-      <div id="editList"></div>
-      <button class="add-habit-btn" onclick="addHabit()">＋ タスクを追加</button>
-      <div class="saved-toast" id="savedToast"></div>
-      <button class="save-tasks-btn" onclick="saveHabits()">タスクを保存する</button>
-      <button class="danger-btn" onclick="resetHabits()">デフォルトに戻す</button>
+      <div class="edit-modal-body">
+        <div id="editList"></div>
+        <button class="add-habit-btn" onclick="addHabit()">＋ タスクを追加</button>
+        <div class="saved-toast" id="savedToast"></div>
+        <button class="save-tasks-btn" onclick="saveHabits()">タスクを保存する</button>
+        <button class="danger-btn" onclick="resetHabits()">デフォルトに戻す</button>
+      </div>
     </div>
   </div>
 </div>
@@ -352,11 +379,12 @@ function startChallenge(){
 }
 
 function switchTab(tab){
-  ['today','history'].forEach((t,i)=>{
+  ['today','history','summary'].forEach((t,i)=>{
     document.querySelectorAll('.tab')[i].classList.toggle('active',t===tab);
     document.getElementById('view-'+t).classList.toggle('active',t===tab);
   });
   if(tab==='history'){renderHistory();renderEdit();}
+  if(tab==='summary') renderSummary();
 }
 
 function render(){
@@ -415,19 +443,43 @@ function completeDay(){
   if(!cur.done)cur.done=[];
   const idx=cur.done.indexOf(cd);
   if(idx===-1){
-    // Complete: auto-save reflection too
     const text=document.getElementById('reflectInput').value.trim();
-    if(text){
-      if(!cur.reflections)cur.reflections={};
-      cur.reflections[today()]=text;
-    }
+    if(text){if(!cur.reflections)cur.reflections={};cur.reflections[today()]=text;}
     cur.done.push(cd);
+    ss(s);render();
+    if(document.getElementById('view-history').classList.contains('active')) renderHistory();
+    showCompletionPopup(s,cd);
   } else {
-    // Undo
     cur.done.splice(idx,1);
+    ss(s);render();
+    if(document.getElementById('view-history').classList.contains('active')) renderHistory();
   }
-  ss(s);render();
-  if(document.getElementById('view-history').classList.contains('active')) renderHistory();
+}
+
+function showCompletionPopup(s,cd){
+  const cur=getCur(s);if(!cur)return;
+  const habits=getHabits(s);
+  const totalDone=(cur.done||[]).length;
+  const rowsHtml=habits.map(h=>{
+    let count=0;
+    Object.values(cur.checks||{}).forEach(checks=>{if(checks.includes(h.id))count++;});
+    const pct=Math.round(count/90*100);
+    return `<div class="completion-row">
+      <div class="completion-name">${h.name}</div>
+      <div class="completion-mini-bar-bg"><div class="completion-mini-bar-fill" style="width:${pct}%"></div></div>
+      <div class="completion-pct">${pct}%</div>
+    </div>`;
+  }).join('');
+  const popup=document.createElement('div');
+  popup.className='completion-popup';
+  popup.id='completionPopup';
+  popup.innerHTML=`<div class="completion-box">
+    <div class="completion-title">DAY ${cd} 完了！</div>
+    <div class="completion-day">累計 ${totalDone} / 90日</div>
+    ${rowsHtml}
+    <button class="completion-close-btn" onclick="document.getElementById('completionPopup').remove()">閉じる</button>
+  </div>`;
+  document.body.appendChild(popup);
 }
 function resetCurrent(){
   if(!confirm('現在のチャレンジをリセットしますか？'))return;
@@ -626,6 +678,29 @@ function saveHabits(){
   closeEdit();
 }
 function resetHabits(){if(!confirm('タスクをデフォルトに戻しますか？'))return;let s=gs();delete s.customHabits;ss(s);renderEdit();render()}
+
+function renderSummary(){
+  let s=gs();const cur=getCur(s);if(!cur)return;
+  const habits=getHabits(s);
+  const cd=currentDay(s);
+  const container=document.getElementById('summaryList');
+  container.innerHTML='';
+  habits.forEach(h=>{
+    let count=0;
+    Object.values(cur.checks||{}).forEach(checks=>{if(checks.includes(h.id))count++;});
+    const pct=Math.round(count/90*100);
+    const card=document.createElement('div');
+    card.className='summary-card';
+    card.innerHTML=`
+      <div class="summary-card-header">
+        <div class="summary-task-name">${h.name}</div>
+        <div class="summary-pct">${pct}%</div>
+      </div>
+      <div class="summary-bar-bg"><div class="summary-bar-fill" style="width:${pct}%"></div></div>
+      <div class="summary-stat">${count}日達成 / ${cd}日経過</div>`;
+    container.appendChild(card);
+  });
+}
 
 (function init(){let s=gs();if(!s.challenges||!s.challenges.length){openSetup();return}render()})();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./90-days-sw.js'));
