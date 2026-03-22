@@ -153,7 +153,7 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 /* Setup overlay */
 .setup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:3000;display:flex;align-items:center;justify-content:center}
 .setup-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:calc(100% - 40px);max-width:440px;padding:24px;box-sizing:border-box}
-.setup-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:3px;color:var(--accent);margin-bottom:6px}
+.setup-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--accent);margin-bottom:6px}
 .setup-sub{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:24px;line-height:1.6}
 .setup-field{margin-bottom:16px}
 .setup-field label{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:6px}
@@ -232,15 +232,18 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 <body>
 
 <!-- SETUP -->
-<div class="setup-overlay" id="setupOverlay" style="display:none">
-  <div class="setup-box">
-    <div class="setup-title">90 DAYS</div>
-    <div class="setup-sub">チャレンジの開始日を選んでください。<br>今日から始める場合はそのままスタートを押してください。</div>
+<div class="setup-overlay" id="setupOverlay" style="display:none" onclick="closeSetup(event)">
+  <div class="setup-box" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+      <div class="setup-title" id="setupTitle">90 DAYS</div>
+      <button onclick="document.getElementById('setupOverlay').style.display='none'" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0;line-height:1;margin-top:4px">✕</button>
+    </div>
+    <div class="setup-sub" id="setupSub">開始日を選んでください。</div>
     <div class="setup-field">
       <label>開始日</label>
-      <input type="date" id="startDateInput" style="width:100%;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;box-sizing:border-box">
+      <input type="date" id="startDateInput">
     </div>
-    <button class="setup-start-btn" onclick="startChallenge()">チャレンジを始める</button>
+    <button class="setup-start-btn" onclick="submitSetup()">決定する</button>
   </div>
 </div>
 
@@ -253,7 +256,7 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
   </div>
   <div class="meta">
     開始: <span id="sd">—</span> &nbsp;／&nbsp; 終了予定: <span id="ed">—</span><br>
-    <a onclick="openSetup()">開始日を変更</a>
+    <a onclick="openSetup('change')">開始日を変更</a> &nbsp;／&nbsp; <a onclick="openSetup('new')">新しいチャレンジ</a>
   </div>
 </header>
 
@@ -369,7 +372,38 @@ function phase(d){if(d<=30)return{n:1,label:'PHASE 1 — 基盤を作る'};if(d<
 function getHabits(s){return s.customHabits||DEFAULT_HABITS}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5)}
 
-function openSetup(){document.getElementById('startDateInput').value=today();document.getElementById('setupOverlay').style.display='flex'}
+function closeSetup(e){
+  if(e.target===document.getElementById('setupOverlay')){
+    document.getElementById('setupOverlay').style.display='none';
+  }
+}
+
+let _setupMode='new';
+function openSetup(mode='new'){
+  _setupMode=mode;
+  document.getElementById('startDateInput').value=today();
+  if(mode==='change'){
+    document.getElementById('setupTitle').textContent='開始日を変更';
+    document.getElementById('setupSub').textContent='現在のチャレンジの開始日を変更します。データはそのまま残ります。';
+  } else {
+    document.getElementById('setupTitle').textContent='新しいチャレンジ';
+    document.getElementById('setupSub').textContent='新しい90日チャレンジを始めます。過去データは記録に残ります。';
+  }
+  document.getElementById('setupOverlay').style.display='flex';
+}
+
+function submitSetup(){
+  if(_setupMode==='change') changeStartDate();
+  else startChallenge();
+}
+
+function changeStartDate(){
+  const d=document.getElementById('startDateInput').value||today();
+  let s=gs();const cur=getCur(s);if(!cur)return;
+  cur.startDate=d;ss(s);
+  document.getElementById('setupOverlay').style.display='none';
+  render();
+}
 function startChallenge(){
   const d=document.getElementById('startDateInput').value||today();
   let s=gs();if(!s.challenges)s.challenges=[];
