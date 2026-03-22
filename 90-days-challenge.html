@@ -28,9 +28,9 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 .meta a{color:var(--muted);text-decoration:underline;cursor:pointer}
 
 /* Tabs - only 2 */
-.tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:1px solid var(--border)}
-.tab{flex:1;padding:10px 4px;background:transparent;border:none;border-bottom:2px solid transparent;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);cursor:pointer;text-align:center;letter-spacing:2px;transition:all .2s;margin-bottom:-1px}
-.tab.active{color:var(--accent);border-bottom:2px solid var(--accent)}
+.tabs{display:flex;gap:4px;margin-bottom:20px}
+.tab{flex:1;padding:9px 4px;background:var(--surface);border:1px solid var(--border);border-radius:4px;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);cursor:pointer;text-align:center;letter-spacing:2px;transition:all .2s}
+.tab.active{border-color:var(--accent);color:var(--accent)}
 .view{display:none}
 .view.active{display:block}
 
@@ -44,8 +44,8 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
 .prog-wrap{margin-bottom:20px}
 .prog-bar-bg{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:5px}
 .prog-bar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .6s ease}
-.prog-label{display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)}
-.prog-label .big{color:var(--accent);font-size:12px}
+.prog-label{display:flex;justify-content:space-between;font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:700;color:var(--muted)}
+.prog-label .big{color:var(--accent);font-size:12px;font-weight:700}
 
 /* Grid */
 .sec-label{font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:2px;margin-bottom:10px;margin-top:30px}
@@ -321,21 +321,7 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:v
       <button class="new-challenge-btn" onclick="openSetup()">新しいチャレンジへ</button>
     </div>
 
-    <!-- Stats -->
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-num" id="statDay">—</div>
-        <div class="stat-label">CURRENT DAY</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="statComp">—</div>
-        <div class="stat-label">DAYS DONE</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="statPct">—</div>
-        <div class="stat-label">PROGRESS</div>
-      </div>
-    </div>
+
 
     <div class="prog-wrap">
       <div class="prog-bar-bg"><div class="prog-bar-fill" id="pb" style="width:0%"></div></div>
@@ -520,11 +506,9 @@ function render(){
   document.getElementById('ed').textContent=fmt(end.toISOString().slice(0,10));
   const cd=currentDay(s),comp=(cur.done||[]).length,pct=Math.round(comp/90*100);
   document.getElementById('pb').style.width=pct+'%';
-  document.getElementById('dayLbl').textContent=`DAY ${cd} / 90`;
+  document.getElementById('dayLbl').textContent=`DAY${cd} / 90`;
   document.getElementById('pct').textContent=pct+'%';
-  document.getElementById('statDay').textContent=cd;
-  document.getElementById('statComp').textContent=comp;
-  document.getElementById('statPct').textContent=pct+'%';
+
   const ph=phase(cd);
   document.getElementById('phaseBadge').textContent=ph.label;
   document.getElementById('qt').innerHTML=QUOTES[cd%QUOTES.length];
