@@ -306,16 +306,17 @@ h1{font-family:"Bebas Neue",sans-serif;font-size:48px;letter-spacing:4px;color:v
           <button class="cta" style="background:var(--accent);color:#000;border-color:var(--accent)" onclick="document.getElementById('settingsOverlay').style.display='none';openSetup('new')">新しいチャレンジを始める</button>
         </div>
         <div class="sec-label">— データ管理</div>
-        <div style="margin-bottom:12px">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5">全データをファイルとして保存します。バックアップとして使えます。</div>
-          <button class="cta" onclick="exportData()">エクスポートする</button>
+
+        <div style="margin-bottom:16px;padding:14px;background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.3);border-radius:6px">
+          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:1px;margin-bottom:6px">▶ 引き継ぎリンク</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5">パスワードを設定してリンクを作成します。別デバイスで同じパスワードを入力するとデータが復元されます。</div>
+          <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">パスワード（自分だけが知る文字列）</div>
+          <input id="sharePwInput" type="password" placeholder="例: myname-2026" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Space Mono',monospace;font-size:12px;padding:9px;box-sizing:border-box;margin-bottom:8px">
+          <button class="cta" style="background:var(--accent);color:#000;border-color:var(--accent);margin-bottom:6px" onclick="copyShareLink()">📋 引き継ぎリンクをコピー</button>
+          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--done-border);text-align:center;min-height:14px" id="shareLinkMsg"></div>
         </div>
-        <div style="margin-bottom:12px">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5">エクスポートしたテキストを貼り付けてデータを復元します。</div>
-          <textarea id="importInput" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:10px;resize:none;height:80px;box-sizing:border-box;margin-bottom:8px" placeholder="エクスポートしたテキストをここに貼り付け…"></textarea>
-          <button class="cta" onclick="importData()">インポートする</button>
-        </div>
-        <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--done-border);text-align:center;margin-top:8px" id="importMsg"></div>
+
+
       </div>
     </div>
   </div>
@@ -1005,6 +1006,92 @@ function closePastDetail(){
 }
 
 function openSettings(){document.getElementById("settingsOverlay").style.display="flex"}
+
+// --- 暗号化ユーティリティ (Web Crypto API) ---
+async function deriveKey(password, salt){
+  var enc = new TextEncoder();
+  var keyMaterial = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    {name:"PBKDF2", salt:salt, iterations:100000, hash:"SHA-256"},
+    keyMaterial, {name:"AES-GCM", length:256}, false, ["encrypt","decrypt"]
+  );
+}
+async function encryptData(password, plaintext){
+  var salt = crypto.getRandomValues(new Uint8Array(16));
+  var iv   = crypto.getRandomValues(new Uint8Array(12));
+  var key  = await deriveKey(password, salt);
+  var enc  = new TextEncoder();
+  var cipher = await crypto.subtle.encrypt({name:"AES-GCM", iv:iv}, key, enc.encode(plaintext));
+  // salt(16) + iv(12) + cipher を結合してBase64
+  var buf = new Uint8Array(16+12+cipher.byteLength);
+  buf.set(salt,0); buf.set(iv,16); buf.set(new Uint8Array(cipher),28);
+  return btoa(String.fromCharCode(...buf));
+}
+async function decryptData(password, b64){
+  var buf = Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
+  var salt = buf.slice(0,16), iv = buf.slice(16,28), cipher = buf.slice(28);
+  var key  = await deriveKey(password, salt);
+  var dec  = new TextDecoder();
+  var plain = await crypto.subtle.decrypt({name:"AES-GCM", iv:iv}, key, cipher);
+  return dec.decode(plain);
+}
+
+async function copyShareLink(){
+  var pw = document.getElementById("sharePwInput").value.trim();
+  var msg = document.getElementById("shareLinkMsg");
+  if(!pw){msg.style.color="var(--accent)";msg.textContent="⚠ パスワードを入力してください";return}
+  msg.textContent="生成中…";
+  try{
+    var data = localStorage.getItem(KEY)||"{}";
+    var encrypted = await encryptData(pw, data);
+    var url = location.href.split("#")[0]+"#d="+encodeURIComponent(encrypted);
+    await navigator.clipboard.writeText(url);
+    msg.style.color="var(--done-border)";
+    msg.textContent="✓ コピーしました！別デバイスで開いて同じパスワードを入力してください";
+    setTimeout(function(){msg.textContent="";document.getElementById("sharePwInput").value=""},5000);
+  }catch(e){
+    msg.style.color="var(--accent)";msg.textContent="⚠ コピーに失敗しました";
+    console.error(e);
+  }
+}
+
+// 引き継ぎ用パスワードモーダルを表示
+function showImportModal(encoded){
+  var overlay = document.createElement("div");
+  overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px";
+  overlay.innerHTML=
+    '<div style="background:var(--surface);border:1px solid var(--accent);border-radius:12px;width:100%;max-width:400px;padding:24px;box-sizing:border-box">'+
+    '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:24px;color:var(--accent);letter-spacing:3px;margin-bottom:6px">データを引き継ぐ</div>'+
+    '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">引き継ぎリンクを作成したときのパスワードを入力してください。</div>'+
+    '<input id="importPwInput" type="password" placeholder="パスワード" style="width:100%;background:#1a1a1a;border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:\'Space Mono\',monospace;font-size:13px;padding:12px;box-sizing:border-box;margin-bottom:10px">'+
+    '<div id="importPwMsg" style="font-family:\'Space Mono\',monospace;font-size:10px;color:var(--accent);min-height:14px;margin-bottom:10px"></div>'+
+    '<button id="importPwBtn" style="width:100%;padding:13px;background:var(--accent);border:none;color:#000;font-family:\'Bebas Neue\',sans-serif;font-size:18px;letter-spacing:2px;border-radius:6px;cursor:pointer;margin-bottom:8px">復元する</button>'+
+    '<button onclick="this.closest(\'div[style]\').remove();history.replaceState(null,\'\',location.pathname)" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:\'Space Mono\',monospace;font-size:10px;border-radius:6px;cursor:pointer">キャンセル</button>'+
+    '</div>';
+  document.body.appendChild(overlay);
+  document.getElementById("importPwBtn").onclick = async function(){
+    var pw = document.getElementById("importPwInput").value.trim();
+    var pmsg = document.getElementById("importPwMsg");
+    if(!pw){pmsg.textContent="⚠ パスワードを入力してください";return}
+    pmsg.textContent="復元中…";
+    try{
+      var json = await decryptData(pw, decodeURIComponent(encoded));
+      var data = JSON.parse(json);
+      var existing = gs();
+      var hasData = existing.challenges&&existing.challenges.length;
+      if(hasData&&!confirm("現在のデータを上書きしてインポートしますか？")){overlay.remove();history.replaceState(null,"",location.pathname);return}
+      localStorage.setItem(KEY,JSON.stringify(data));
+      history.replaceState(null,"",location.pathname);
+      overlay.remove();
+      render();
+      pmsg.style.color="var(--done-border)";
+    }catch(e){
+      pmsg.textContent="⚠ パスワードが違うか、データが壊れています";
+    }
+  };
+  setTimeout(function(){document.getElementById("importPwInput").focus()},100);
+}
+
 function exportData(){
   var data=localStorage.getItem(KEY)||"{}";
   var blob=new Blob([data],{type:"application/json"});
@@ -1084,6 +1171,20 @@ function saveAsImage(){
 
 // INIT
 (function(){
+  // URLハッシュにデータがあればパスワード入力モーダルを表示
+  var hash=location.hash;
+  if(hash&&hash.indexOf("#d=")===0){
+    var encoded=hash.slice(3);
+    // まずlocalStorageを初期化してからモーダル表示
+    var s=gs();
+    if(!s.challenges||!s.challenges.length){
+      // データなし → セットアップより先にモーダル
+      document.addEventListener("DOMContentLoaded",function(){showImportModal(encoded)});
+    } else {
+      showImportModal(encoded);
+    }
+    return;
+  }
   var s=gs();
   if(!s.challenges||!s.challenges.length){openSetup("new");return}
   render();
