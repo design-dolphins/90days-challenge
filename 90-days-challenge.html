@@ -1040,30 +1040,26 @@ async function copyShareLink(){
   var pw = document.getElementById("sharePwInput").value.trim();
   var msg = document.getElementById("shareLinkMsg");
   if(!pw){msg.style.color="var(--accent)";msg.textContent="⚠ パスワードを入力してください";return}
-  msg.textContent="生成中…";
+  msg.style.color="var(--muted)";msg.textContent="生成中…";
   try{
     var data = localStorage.getItem(KEY)||"{}";
     var encrypted = await encryptData(pw, data);
     var url = location.href.split("#")[0]+"#d="+encodeURIComponent(encrypted);
-    // クリップボードコピー（スマホ対応フォールバック付き）
+
+    // iOSを含むスマホ対応：まずフォールバックUIを表示し、そこでコピーも試みる
     var copied = false;
-    if(navigator.clipboard && navigator.clipboard.writeText){
+
+    // clipboard API（httpsかつユーザー操作直後のみ有効）
+    if(navigator.clipboard && navigator.clipboard.writeText && location.protocol==="https:"){
       try{ await navigator.clipboard.writeText(url); copied=true; }catch(e){}
     }
-    if(!copied){
-      // フォールバック：テキストエリアを一時作成してコピー
-      var ta=document.createElement("textarea");
-      ta.value=url; ta.style.cssText="position:fixed;left:-9999px;top:-9999px;opacity:0";
-      document.body.appendChild(ta); ta.focus(); ta.select();
-      try{ copied=document.execCommand("copy"); }catch(e){}
-      document.body.removeChild(ta);
-    }
+
     if(copied){
       msg.style.color="var(--done-border)";
       msg.textContent="✓ コピーしました！別デバイスで開いて同じパスワードを入力してください";
       setTimeout(function(){msg.textContent="";document.getElementById("sharePwInput").value=""},5000);
     } else {
-      // 最終手段：URLを画面に表示して手動コピー
+      msg.textContent="";
       showUrlFallback(url);
     }
   }catch(e){
@@ -1074,17 +1070,48 @@ async function copyShareLink(){
 
 function showUrlFallback(url){
   var overlay=document.createElement("div");
-  overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px";
-  overlay.innerHTML=
-    '<div style="background:var(--surface);border:1px solid var(--accent);border-radius:12px;width:100%;max-width:400px;padding:24px;box-sizing:border-box">'+
-    '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:20px;color:var(--accent);letter-spacing:2px;margin-bottom:8px">引き継ぎリンク</div>'+
-    '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">URLを長押しして「コピー」してください。</div>'+
-    '<textarea readonly style="width:100%;background:#1a1a1a;border:1px solid var(--border);border-radius:4px;color:var(--accent);font-family:\'Space Mono\',monospace;font-size:10px;padding:10px;resize:none;height:100px;box-sizing:border-box;word-break:break-all" onclick="this.select()">'+url+'</textarea>'+
-    '<button onclick="this.closest(\'div[style]\').remove()" style="width:100%;margin-top:12px;padding:11px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:\'Space Mono\',monospace;font-size:10px;border-radius:6px;cursor:pointer">閉じる</button>'+
-    '</div>';
+  overlay.id="urlFallbackOverlay";
+  overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box";
+
+  var box=document.createElement("div");
+  box.style.cssText="background:var(--surface);border:1px solid var(--accent);border-radius:12px;width:100%;max-width:400px;padding:24px;box-sizing:border-box";
+
+  var title=document.createElement("div");
+  title.style.cssText="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--accent);letter-spacing:2px;margin-bottom:8px";
+  title.textContent="引き継ぎリンク";
+
+  var desc=document.createElement("div");
+  desc.style.cssText="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5";
+  desc.textContent="下のボタンでコピーするか、URLを長押しして「コピー」してください。";
+
+  var ta=document.createElement("textarea");
+  ta.readOnly=true;
+  ta.value=url;
+  ta.style.cssText="width:100%;background:#1a1a1a;border:1px solid var(--border);border-radius:4px;color:var(--accent);font-family:'Space Mono',monospace;font-size:10px;padding:10px;resize:none;height:90px;box-sizing:border-box;word-break:break-all;-webkit-user-select:all;user-select:all";
+
+  var copyBtn=document.createElement("button");
+  copyBtn.style.cssText="width:100%;margin-top:10px;padding:12px;background:var(--accent);border:none;color:#000;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;border-radius:6px;cursor:pointer";
+  copyBtn.textContent="📋 コピーする";
+  copyBtn.onclick=function(){
+    ta.select();
+    ta.setSelectionRange(0,99999);
+    var ok=false;
+    try{ok=document.execCommand("copy")}catch(e){}
+    if(!ok && navigator.clipboard){navigator.clipboard.writeText(url).then(function(){}).catch(function(){}); ok=true;}
+    copyBtn.textContent= ok ? "✓ コピーしました！" : "コピーできませんでした（URLを長押し）";
+  };
+
+  var closeBtn=document.createElement("button");
+  closeBtn.style.cssText="width:100%;margin-top:8px;padding:11px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;border-radius:6px;cursor:pointer";
+  closeBtn.textContent="閉じる";
+  closeBtn.onclick=function(){
+    if(overlay.parentNode) overlay.parentNode.removeChild(overlay);
+  };
+
+  box.appendChild(title);box.appendChild(desc);box.appendChild(ta);box.appendChild(copyBtn);box.appendChild(closeBtn);
+  overlay.appendChild(box);
   document.body.appendChild(overlay);
-  // テキストエリアを自動選択
-  setTimeout(function(){var ta=overlay.querySelector("textarea");if(ta){ta.focus();ta.select()}},100);
+  setTimeout(function(){ta.focus();ta.select();ta.setSelectionRange(0,99999);},100);
 }
 
 function showImportModal(encoded){
