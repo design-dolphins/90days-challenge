@@ -204,6 +204,10 @@ h1{font-family:"Bebas Neue",sans-serif;font-size:48px;letter-spacing:4px;color:v
       <input type="date" id="startDateInput">
     </div>
     <button class="setup-start-btn" onclick="submitSetup()">決定する</button>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:8px;text-align:center">データをクラウドに保存する場合</div>
+      <button id="authBtnSetup" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Space Mono',monospace;font-size:11px;border-radius:6px;cursor:pointer;box-sizing:border-box">Googleでログイン</button>
+    </div>
   </div>
 </div>
 
@@ -216,16 +220,12 @@ h1{font-family:"Bebas Neue",sans-serif;font-size:48px;letter-spacing:4px;color:v
   </div>
   <div class="meta">
     <div>開始: <span id="sd">—</span> &nbsp;／&nbsp; 終了予定: <span id="ed">—</span></div>
-    <div style="display:flex;align-items:center;gap:10px">
-      <span id="userInfo" style="display:none;font-family:'Space Mono',monospace;font-size:9px;color:var(--accent);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-      <button id="authBtn" style="font-family:'Space Mono',monospace;font-size:9px;padding:4px 10px;background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:3px;cursor:pointer;white-space:nowrap">Googleでログイン</button>
-      <button class="gear-btn" onclick="openSettings()">
+    <button class="gear-btn" onclick="openSettings()">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="3"/>
         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
       </svg>
-      </button>
-    </div>
+    </button>
   </div>
 </header>
 
@@ -304,7 +304,14 @@ h1{font-family:"Bebas Neue",sans-serif;font-size:48px;letter-spacing:4px;color:v
         <button class="edit-modal-close" onclick="document.getElementById('settingsOverlay').style.display='none'">&#10005;</button>
       </div>
       <div class="edit-modal-body">
-        <div class="sec-label" style="margin-top:0">— チャレンジ</div>
+        <div class="sec-label" style="margin-top:0">— アカウント</div>
+        <div style="margin-bottom:20px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <span id="userInfo" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--accent);flex:1"></span>
+          </div>
+          <button id="authBtn" class="cta">Googleでログイン</button>
+        </div>
+        <div class="sec-label">— チャレンジ</div>
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
           <button class="cta" onclick="document.getElementById('settingsOverlay').style.display='none';openSetup('change')">開始日を変更</button>
           <button class="cta" style="background:var(--accent);color:#000;border-color:var(--accent)" onclick="document.getElementById('settingsOverlay').style.display='none';openSetup('new')">新しいチャレンジを始める</button>
@@ -1147,6 +1154,8 @@ onAuthStateChanged(auth, async function(user) {
     btn.textContent = "ログアウト";
     userInfo.textContent = user.displayName || user.email;
     userInfo.style.display = "block";
+    var setupBtn = document.getElementById("authBtnSetup");
+    if(setupBtn){ setupBtn.textContent="ログアウト"; setupBtn.style.borderColor="var(--accent)"; setupBtn.style.color="var(--accent)"; }
     // Load cloud data
     const cloudData = await loadFromCloud(user.uid);
     if(cloudData) {
@@ -1158,13 +1167,16 @@ onAuthStateChanged(auth, async function(user) {
     window._cloudUid = user.uid;
   } else {
     btn.textContent = "Googleでログイン";
+    userInfo.textContent = "";
     userInfo.style.display = "none";
+    var setupBtn = document.getElementById("authBtnSetup");
+    if(setupBtn){ setupBtn.textContent="Googleでログイン"; setupBtn.style.borderColor="var(--border)"; setupBtn.style.color="var(--muted)"; }
     window._cloudUid = null;
   }
 });
 
-// Login/Logout button
-document.getElementById("authBtn").onclick = async function() {
+// Login/Logout handler
+async function handleAuth() {
   if(auth.currentUser) {
     await signOut(auth);
   } else {
@@ -1172,7 +1184,9 @@ document.getElementById("authBtn").onclick = async function() {
       await signInWithPopup(auth, provider);
     } catch(e) { console.error("Login error:", e); }
   }
-};
+}
+document.getElementById("authBtn").onclick = handleAuth;
+document.getElementById("authBtnSetup").onclick = handleAuth;
 
 // Override ss function to sync to cloud
 var _origSs = window.ss;
