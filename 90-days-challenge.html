@@ -300,6 +300,14 @@ h1{font-family:"Bebas Neue",sans-serif;font-size:48px;letter-spacing:4px;color:v
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
           <button class="cta" onclick="document.getElementById('settingsOverlay').style.display='none';openSetup('change')">開始日を変更</button>
           <button class="cta" style="background:var(--accent);color:#000;border-color:var(--accent)" onclick="document.getElementById('settingsOverlay').style.display='none';openSetup('new')">新しいチャレンジを始める</button>
+          <button class="cta" style="border-color:#803030;color:#803030" onclick="resetAll()">最初から始める（全データ削除）</button>
+        </div>
+        <div class="sec-label">— AI設定</div>
+        <div style="margin-bottom:20px">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5">AnthropicのAPIキーを入力するとAIコーチが使えます。<br><span style="color:var(--accent)">console.anthropic.com</span> で取得できます。</div>
+          <input id="apiKeyInput" type="password" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;padding:10px;box-sizing:border-box;margin-bottom:8px" placeholder="sk-ant-...">
+          <button class="cta" onclick="saveApiKey()">APIキーを保存</button>
+          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--done-border);margin-top:4px" id="apiKeyMsg"></div>
         </div>
         <div class="sec-label">— データ管理</div>
         <div style="margin-bottom:12px">
@@ -779,7 +787,31 @@ function resetHabits(){
   var s=gs();delete s.customHabits;ss(s);renderEditModal();render();
 }
 
-function openSettings(){document.getElementById("settingsOverlay").style.display="flex"}
+function openSettings(){
+  document.getElementById("settingsOverlay").style.display="flex";
+  var key=localStorage.getItem("anthropic-api-key")||"";
+  var inp=document.getElementById("apiKeyInput");
+  if(inp)inp.value=key?"sk-ant-...（保存済み）":"";
+}
+
+function saveApiKey(){
+  var key=document.getElementById("apiKeyInput").value.trim();
+  if(key&&key!=="sk-ant-...（保存済み）"){
+    localStorage.setItem("anthropic-api-key",key);
+    var msg=document.getElementById("apiKeyMsg");msg.textContent="✓ 保存しました";
+    setTimeout(function(){msg.textContent=""},3000);
+  }
+}
+
+function resetAll(){
+  if(!confirm("全てのデータを削除して最初から始めますか？\nこの操作は取り消せません。"))return;
+  localStorage.removeItem(KEY);
+  if(_cloudUid&&_firebaseDb){
+    _firebaseDb.collection("users").doc(_cloudUid).delete().catch(function(e){console.error(e)});
+  }
+  document.getElementById("settingsOverlay").style.display="none";
+  openSetup("new");
+}
 
 function exportData(){
   var data=localStorage.getItem(KEY)||"{}";
@@ -937,12 +969,19 @@ async function callAI(){
   addLoadingBubble();
   var fallbacks=["今日も一歩前進！小さな積み重ねが大きな変化を生みます。明日も続けましょう。","完璧を求めず、続けることが最重要です。未完了があっても明日また頑張りましょう。","振り返りを書く習慣は成長を加速させます。今日の気づきを大切にしてください。","今日できたことに注目してください。昨日の自分より少しでも前進していれば十分です。","90日の旅は一日一日の積み重ね。今日の選択が90日後の自分を作ります。"];
   try{
+    var apiKey=localStorage.getItem("anthropic-api-key")||"";
+    if(!apiKey)throw new Error("APIキーが設定されていません");
     var resp=await fetch("https://api.anthropic.com/v1/messages",{
       method:"POST",
-      headers:{"Content-Type":"application/json","anthropic-dangerous-direct-browser-access":"true"},
+      headers:{
+        "Content-Type":"application/json",
+        "x-api-key":apiKey,
+        "anthropic-version":"2023-06-01",
+        "anthropic-dangerous-direct-browser-access":"true"
+      },
       body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:500,system:_aiSystemPrompt,messages:_aiMessages})
     });
-    if(!resp.ok)throw new Error("API Error "+resp.status);
+    if(!resp.ok){var errData=await resp.json();throw new Error(errData.error?errData.error.message:"API Error "+resp.status)}
     var data=await resp.json();
     var text=data.content&&data.content[0]?data.content[0].text:"エラーが発生しました。";
     removeLoadingBubble();
@@ -950,7 +989,10 @@ async function callAI(){
     _aiMessages.push({role:"assistant",content:text});
   }catch(e){
     removeLoadingBubble();
-    var advice=fallbacks[_aiMessages.length%fallbacks.length];
+    var noKey = e.message && e.message.includes("APIキーが設定されていません");
+    var advice = noKey
+      ? "AIコーチを使うにはAPIキーの設定が必要です。⚙️設定 → AI設定 からAnthropicのAPIキーを入力してください。"
+      : fallbacks[_aiMessages.length%fallbacks.length];
     addAIBubble("assistant",advice,false);
     _aiMessages.push({role:"assistant",content:advice});
   }
