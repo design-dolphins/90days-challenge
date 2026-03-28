@@ -169,21 +169,6 @@ h1{font-family:"Bebas Neue",sans-serif;font-size:48px;letter-spacing:4px;color:v
 .past-detail-title{font-family:"Bebas Neue",sans-serif;font-size:24px;color:var(--accent);letter-spacing:3px}
 .past-detail-body{padding:20px 20px 40px}
 .empty-state{font-family:"Space Mono",monospace;font-size:10px;color:var(--muted);text-align:center;padding:20px}
-.ai-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;display:flex;align-items:flex-end;justify-content:center}
-.ai-modal{background:#f0ebe3;border-radius:12px 12px 0 0;width:100%;max-width:600px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
-.ai-modal-header{display:flex;justify-content:space-between;align-items:center;padding:20px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0;background:#f0ebe3}
-.ai-modal-title{font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:3px;color:var(--accent)}
-.ai-modal-body{padding:16px;overflow-y:auto;flex:1;display:flex;flex-direction:column}
-.ai-messages{flex:1;margin-bottom:12px}
-.ai-msg{margin-bottom:12px}
-.ai-msg-label{font-family:"Space Mono",monospace;font-size:9px;color:var(--muted);margin-bottom:4px;letter-spacing:1px}
-.ai-bubble{display:inline-block;padding:10px 14px;border-radius:6px;font-size:13px;line-height:1.6;max-width:90%}
-.ai-bubble.assistant{background:var(--surface);border:1px solid var(--border);color:var(--text)}
-.ai-bubble.user{background:var(--done);border:1px solid var(--done-border);color:var(--text)}
-.ai-input-row{display:flex;gap:8px;align-items:flex-end;flex-shrink:0}
-.ai-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:"Noto Sans JP",sans-serif;font-size:16px;padding:10px;resize:none;height:60px;line-height:1.5}
-.ai-input:focus{outline:none;border-color:var(--accent)}
-.ai-send-btn{padding:10px 16px;background:var(--accent);border:none;color:#000;font-family:"Bebas Neue",sans-serif;font-size:16px;letter-spacing:1px;border-radius:6px;cursor:pointer}
 @media print{body>*:not(.share-overlay){display:none!important}.share-overlay{position:static;background:#f0ebe3;padding:0;display:block!important}.share-actions{display:none!important}.share-card{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
 </style>
 </head>
@@ -302,13 +287,6 @@ h1{font-family:"Bebas Neue",sans-serif;font-size:48px;letter-spacing:4px;color:v
           <button class="cta" style="background:var(--accent);color:#000;border-color:var(--accent)" onclick="document.getElementById('settingsOverlay').style.display='none';openSetup('new')">新しいチャレンジを始める</button>
           <button class="cta" style="border-color:#803030;color:#803030" onclick="resetAll()">最初から始める（全データ削除）</button>
         </div>
-        <div class="sec-label">— AI設定</div>
-        <div style="margin-bottom:20px">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5">AnthropicのAPIキーを入力するとAIコーチが使えます。<br><span style="color:var(--accent)">console.anthropic.com</span> で取得できます。</div>
-          <input id="apiKeyInput" type="password" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;padding:10px;box-sizing:border-box;margin-bottom:8px" placeholder="sk-ant-...">
-          <button class="cta" onclick="saveApiKey()">APIキーを保存</button>
-          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--done-border);margin-top:4px" id="apiKeyMsg"></div>
-        </div>
         <div class="sec-label">— データ管理</div>
         <div style="margin-bottom:12px">
           <div style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5">全データをファイルとして保存します。</div>
@@ -341,21 +319,7 @@ h1{font-family:"Bebas Neue",sans-serif;font-size:48px;letter-spacing:4px;color:v
   <div class="past-detail-body" id="pastDetailBody"></div>
 </div>
 
-<div class="ai-overlay" id="aiOverlay" style="display:none">
-  <div class="ai-modal">
-    <div class="ai-modal-header">
-      <div class="ai-modal-title">AI COACH</div>
-      <button class="edit-modal-close" onclick="document.getElementById('aiOverlay').style.display='none'">&#10005;</button>
-    </div>
-    <div class="ai-modal-body">
-      <div class="ai-messages" id="aiMessages"></div>
-      <div class="ai-input-row">
-        <textarea class="ai-input" id="aiInput" placeholder="質問や相談を入力…"></textarea>
-        <button class="ai-send-btn" onclick="sendAIMessage()">送信</button>
-      </div>
-    </div>
-  </div>
-</div>
+
 
 <script>
 var KEY = "90days-v1";
@@ -551,15 +515,11 @@ function showCompletionPopup(s,cd){
     var pp=document.createElement("div");pp.className="completion-pct";pp.textContent=p+"%";
     row.appendChild(nm);row.appendChild(barBg);row.appendChild(pp);box.appendChild(row);
   });
-  var aiBtn=document.createElement("button");
-  aiBtn.className="completion-close-btn";
-  aiBtn.style.background="transparent";aiBtn.style.border="2px solid var(--accent)";aiBtn.style.color="var(--accent)";aiBtn.style.marginTop="16px";aiBtn.style.marginBottom="8px";
-  aiBtn.textContent="AIにアドバイスをもらう";
-  (function(ss,cc){aiBtn.onclick=function(){document.getElementById("completionPopup").remove();openAICoach(ss,cc)}})(s,cd);
+
   var closeBtn=document.createElement("button");
   closeBtn.className="completion-close-btn";closeBtn.textContent="閉じる";
   closeBtn.onclick=function(){document.getElementById("completionPopup").remove()};
-  box.appendChild(aiBtn);box.appendChild(closeBtn);
+box.appendChild(closeBtn);
   popup.appendChild(box);document.body.appendChild(popup);
 }
 
@@ -789,37 +749,8 @@ function resetHabits(){
 
 function openSettings(){
   document.getElementById("settingsOverlay").style.display="flex";
-  var key=localStorage.getItem("anthropic-api-key")||"";
-  var inp=document.getElementById("apiKeyInput");
-  if(inp)inp.value=key?"sk-ant-...（保存済み）":"";
 }
 
-function saveApiKey(){
-  var key=document.getElementById("apiKeyInput").value.trim();
-  if(key&&key!=="sk-ant-...（保存済み）"){
-    localStorage.setItem("anthropic-api-key",key);
-    var msg=document.getElementById("apiKeyMsg");msg.textContent="✓ 保存しました";
-    setTimeout(function(){msg.textContent=""},3000);
-  }
-}
-
-function resetAll(){
-  if(!confirm("全てのデータを削除して最初から始めますか？\nこの操作は取り消せません。"))return;
-  localStorage.removeItem(KEY);
-  if(_cloudUid&&_firebaseDb){
-    _firebaseDb.collection("users").doc(_cloudUid).delete().catch(function(e){console.error(e)});
-  }
-  document.getElementById("settingsOverlay").style.display="none";
-  openSetup("new");
-}
-
-function exportData(){
-  var data=localStorage.getItem(KEY)||"{}";
-  var blob=new Blob([data],{type:"application/json"});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement("a");a.href=url;a.download="90days-backup-"+today()+".json";a.click();
-  URL.revokeObjectURL(url);
-}
 function importData(){
   var text=document.getElementById("importInput").value.trim();
   if(!text){alert("テキストを貼り付けてください。");return}
@@ -927,22 +858,6 @@ function openPastDetail(c,num){
 }
 function closePastDetail(){document.getElementById("pastDetailOverlay").classList.remove("open")}
 
-function openAICoach(s,cd){
-  _aiMessages=[];_aiSystemPrompt="";
-  document.getElementById("aiMessages").innerHTML="";
-  document.getElementById("aiOverlay").style.display="flex";
-  var cur=getCur(s);if(!cur)return;
-  var habits=getHabits(s);var td=today();
-  var checks=(cur.checks||{})[td]||[];var reflect=(cur.reflections||{})[td]||"";
-  var comp=(cur.done||[]).length;var pct=Math.round(comp/90*100);
-  var visible=habits.filter(function(h){return h.phase<=phase(cd).n});
-  var doneList=visible.filter(function(h){return checks.indexOf(h.id)!==-1}).map(function(h){return h.name});
-  var notDoneList=visible.filter(function(h){return checks.indexOf(h.id)===-1}).map(function(h){return h.name});
-  _aiSystemPrompt="あなたは90日チャレンジのAIコーチです。ユーザーの今日の状況を踏まえて、励ましと具体的なアドバイスを日本語で提供してください。回答は200文字以内でコンパクトにしてください。\n\n【今日の状況】\n- DAY: "+cd+"\n- 累計完了: "+comp+"/90日\n- 完了したタスク: "+(doneList.length>0?doneList.join("、"):"なし")+"\n- 未完了のタスク: "+(notDoneList.length>0?notDoneList.join("、"):"なし")+"\n- 今日の振り返り: "+(reflect||"未記入");
-  _aiMessages=[{role:"user",content:"今日の状況を踏まえてコーチングしてください。"}];
-  addAIBubble("user","今日の状況を踏まえてコーチングしてください。",true);
-  callAI();
-}
 
 function addAIBubble(role,text,hide){
   if(hide)return;
@@ -1005,10 +920,7 @@ function sendAIMessage(){
   input.value="";callAI();
 }
 
-document.addEventListener("DOMContentLoaded",function(){
-  var aiInput=document.getElementById("aiInput");
-  if(aiInput)aiInput.addEventListener("keydown",function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendAIMessage()}});
-});
+
 
 // Firebase
 (function initFirebase(){
