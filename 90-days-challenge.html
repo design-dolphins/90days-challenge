@@ -747,6 +747,16 @@ function resetHabits(){
   var s=gs();delete s.customHabits;ss(s);renderEditModal();render();
 }
 
+function resetAll(){
+  if(!confirm("全てのデータを削除して最初から始めますか？\nこの操作は取り消せません。"))return;
+  localStorage.removeItem(KEY);
+  if(_cloudUid&&_firebaseDb){
+    _firebaseDb.collection("users").doc(_cloudUid).delete().catch(function(e){console.error(e)});
+  }
+  document.getElementById("settingsOverlay").style.display="none";
+  openSetup("new");
+}
+
 function openSettings(){
   document.getElementById("settingsOverlay").style.display="flex";
 }
